@@ -1,0 +1,84 @@
+{
+  "meta": {
+    "id": "my-story-id",
+    "title": "My Story Title",
+    "author": "Your Name",
+    "blurb": "A one- or two-sentence teaser shown on the title screen.",
+    "start": "first-scene",
+    "stats": { "example-stat": 0, "health": 3 },
+    "items": [],
+    "hardcore": false,
+    "statDeath": { "health": "death-scene" },
+    "achievements": {
+      "example-badge": { "name": "Badge Name", "desc": "How to earn it" },
+      "hidden-badge": { "name": "Secret Badge", "desc": "Shown only once earned", "secret": true }
+    }
+  },
+  "scenes": {
+    "first-scene": {
+      "text": "Scene text goes here. Use \\n\\n for paragraph breaks.",
+      "mood": "mystery",
+      "choices": [
+        { "text": "A simple choice", "goto": "second-scene" },
+        {
+          "text": "A choice with requirements and effects",
+          "goto": "second-scene",
+          "require": {
+            "items": ["needed-item"],
+            "missingItems": ["item-you-must-NOT-have"],
+            "stats": { "example-stat": { "min": 1, "max": 5 } }
+          },
+          "effects": {
+            "gainItems": ["new-item"],
+            "loseItems": ["needed-item"],
+            "stats": { "example-stat": 1 },
+            "setStats": { "example-stat": 0 },
+            "award": ["example-badge"]
+          },
+          "lockedText": "shown on the disabled button when requirements fail",
+          "hideIfLocked": false
+        },
+        {
+          "text": "A risky dice-roll choice",
+          "roll": {
+            "chance": 0.4,
+            "perStat": { "example-stat": 0.1 },
+            "success": "second-scene",
+            "failure": "death-scene",
+            "successEffects": { "award": ["hidden-badge"] },
+            "failureEffects": { "stats": { "health": -1 } }
+          }
+        }
+      ]
+    },
+    "second-scene": {
+      "text": "Scenes can apply effects automatically when entered, via onEnter.",
+      "mood": "calm",
+      "onEnter": { "gainItems": [], "stats": {} },
+      "choices": [
+        { "text": "Go to a write-in scene", "goto": "write-in-scene" }
+      ]
+    },
+    "write-in-scene": {
+      "text": "A writeIn scene has no buttons at first: the active player writes their action in their own words. In two-player modes, the OTHER player then judges it by picking one of the outcomes below. Solo players judge themselves. Written moves appear in the journey recap.",
+      "mood": "mystery",
+      "writeIn": {
+        "prompt": "The question the player answers in their own words.",
+        "outcomes": [
+          { "text": "Label the judge sees, e.g. 'That works — brilliantly'", "goto": "an-ending", "effects": { "stats": { "example-stat": 1 } } },
+          { "text": "e.g. 'That backfires'", "goto": "death-scene" }
+        ]
+      }
+    },
+    "death-scene": {
+      "text": "Players land here automatically if a statDeath stat drops to 0 (or via a failed roll above).",
+      "mood": "danger",
+      "ending": { "id": "death", "name": "An Untimely End" }
+    },
+    "an-ending": {
+      "text": "Ending scenes have an 'ending' field and no choices. The engine tracks which endings the player has found.",
+      "mood": "victory",
+      "ending": { "id": "ending-1", "name": "Name Shown in the Endings List" }
+    }
+  }
+}

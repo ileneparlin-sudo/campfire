@@ -1,0 +1,180 @@
+{
+  "meta": {
+    "id": "the-keeper-and-the-wanderer",
+    "title": "The Keeper & the Wanderer",
+    "author": "A Tale for Two",
+    "blurb": "Two souls, one storm-dark night, and a comet that folds distance — if you both do your part. Best played as Two-Player Pass & Play: one of you is the Keeper, one the Wanderer. Choose only on your own scenes... or don't. It's your story.",
+    "start": "k1",
+    "stats": { "hope": 3 },
+    "items": ["tin-locket"],
+    "statDeath": { "hope": "end-faded" },
+    "achievements": {
+      "stargazer": { "name": "Stargazer", "desc": "Learn the star-words from the old astronomer" },
+      "leap-of-faith": { "name": "Leap of Faith", "desc": "Cross the rope bridge in the storm" },
+      "what-we-wrote": { "name": "What We Wrote", "desc": "Sacrifice something precious to feed the light" },
+      "two-lights": { "name": "Two Lights, One Door", "desc": "Find the secret hidden in the locket", "secret": true }
+    }
+  },
+  "scenes": {
+    "k1": {
+      "text": "— THE KEEPER —\n\nThe gull arrives at dusk, fighting the wind, a letter tied to its leg in handwriting you would know in the dark.\n\n\"Tonight, the comet. Tonight, the legend. Light the Saltspire at moonrise and I will climb to meet its reflection. They say that when starfall crosses a true-lit beam, the miles between two hearts fold like paper. I am already walking. Be my light. — Yours, always.\"\n\nBeyond the breakwater, the storm is stacking clouds like black stones.",
+      "mood": "calm",
+      "choices": [
+        { "text": "Climb the tower at once — and take the cellar key from its hook as you go", "goto": "w1", "effects": { "gainItems": ["cellar-key"] } },
+        { "text": "First, write a reply and send it back with the gull: \"I will be your light.\"", "goto": "w1", "effects": { "stats": { "hope": 1 } } },
+        { "text": "Fold the letter slowly. Legends are for children... aren't they?", "goto": "w1", "effects": { "stats": { "hope": -1 } } }
+      ]
+    },
+    "w1": {
+      "text": "— THE WANDERER —\n\nThe mountain road climbs into evening. In your pocket, a tin locket with their picture; over your shoulder, the first cold spit of rain. The summit with the mirror-pool is three hours off, and the comet won't wait.\n\nAhead the path splits: the high ridge, fast and wind-scoured — or the long way past the wayside inn, where a lamp is already burning.",
+      "mood": "mystery",
+      "choices": [
+        { "text": "Take the high ridge, straight into the wind", "goto": "w1-ridge" },
+        { "text": "Stop at the inn — just for a moment", "goto": "w1-inn" },
+        { "text": "Press the locket to your lips and walk faster", "goto": "k2", "effects": { "stats": { "hope": 1 } } }
+      ]
+    },
+    "w1-ridge": {
+      "text": "— THE WANDERER —\n\nThe ridge nearly takes your hat and your nerve, but at its crest the whole dark country opens below — and there, impossibly far and impossibly small, a pinprick on the coast: the Saltspire. Unlit yet. Waiting.\n\nThey are down there. Climbing their own stairs. The thought warms you better than any fire.",
+      "mood": "mystery",
+      "onEnter": { "stats": { "hope": 1 } },
+      "choices": [
+        { "text": "Press on through the pines", "goto": "k2" }
+      ]
+    },
+    "w1-inn": {
+      "text": "— THE WANDERER —\n\nInside the inn, an old astronomer sits alone with a pot of tea and a chart of tonight's sky. She looks at your soaked coat, then at the road behind your eyes.\n\n\"Going up to meet the comet, then. For someone.\" She doesn't ask — she remembers. \"There are words my own love and I used, back when the comet last came. Star-words. Say them inside the beam and the folding... holds.\" She teaches you, twice, until you have them.",
+      "mood": "calm",
+      "onEnter": { "gainItems": ["star-words"], "award": ["stargazer"] },
+      "choices": [
+        { "text": "Thank her, and carry her words into the night", "goto": "k2" }
+      ]
+    },
+    "k2": {
+      "text": "— THE KEEPER —\n\nThe storm arrives early and furious. Halfway up the tower stairs you hear it: the great lamp's wick is damp, the storm-glass around the lantern room is crusted with salt-dark grime, and moonrise is barely two hours out.\n\nA weak light might not reach the mountains at all.",
+      "mood": "danger",
+      "choices": [
+        { "text": "Unlock the cellar and haul up the last cask of whale-oil", "goto": "k2-cellar", "require": { "items": ["cellar-key"] }, "lockedText": "the cellar key still hangs by the door, far below" },
+        { "text": "Climb out on the gallery rail to scrub the storm-glass clear", "roll": { "chance": 0.4, "perStat": { "hope": 0.1 }, "success": "k2-clear", "failure": "end-sea" } },
+        { "text": "Stuff the window cracks and hope the wick dries in time", "goto": "w2", "effects": { "stats": { "hope": -1 } } }
+      ]
+    },
+    "k2-cellar": {
+      "text": "— THE KEEPER —\n\nThe cellar smells of brine and old rope. Behind the chain coils, one last cask of whale-oil — heavy as guilt, but you get it onto your shoulder. On the stair back up, lightning whitens the slit windows, and for half a heartbeat you'd swear the thunder says their name.",
+      "mood": "mystery",
+      "onEnter": { "gainItems": ["whale-oil"] },
+      "choices": [
+        { "text": "Climb. Just climb.", "goto": "w2" }
+      ]
+    },
+    "k2-clear": {
+      "text": "— THE KEEPER —\n\nYou edge along the gallery with the rail biting your palms and the sea bellowing sixty feet below. Rag by rag, the salt-grime comes away until the storm-glass shines like a held breath.\n\nBack inside, soaked to the skin and laughing at your own thudding heart, you understand something: you'd have crossed worse than a wet railing for them.",
+      "mood": "danger",
+      "onEnter": { "gainItems": ["clear-glass"], "stats": { "hope": 1 } },
+      "choices": [
+        { "text": "Wring out your coat and ready the lamp", "goto": "w2" }
+      ]
+    },
+    "w2": {
+      "text": "— THE WANDERER —\n\nThe river has forgotten it was ever small. Brown water hammers beneath the old rope bridge, which sways like it's deciding something.\n\nDownstream there's a ford — safe, slow, and long. Above the eastern peaks, a faint smudge of silver: the comet, beginning.",
+      "mood": "danger",
+      "choices": [
+        { "text": "Cross the rope bridge, hand over hand", "roll": { "chance": 0.45, "perStat": { "hope": 0.1 }, "success": "w2-across", "failure": "w2-fall", "successEffects": { "award": ["leap-of-faith"], "stats": { "hope": 1 } } } },
+        { "text": "Take the long ford and trust your legs", "goto": "w2-ford" }
+      ]
+    },
+    "w2-across": {
+      "text": "— THE WANDERER —\n\nThe bridge bucks, the river roars, one plank drops away into the dark — and then there is solid stone under your boots and your own wild laughter in the wind.\n\nLet the storm try harder. You are going up this mountain.",
+      "mood": "calm",
+      "choices": [
+        { "text": "Climb the last switchbacks", "goto": "k3" }
+      ]
+    },
+    "w2-fall": {
+      "text": "— THE WANDERER —\n\nThe rope sighs, the world tilts, and the river has you — three crushing, tumbling seconds before a fallen pine catches your coat and you drag yourself out, coughing mud.\n\nYou're alive. Bruised, frozen, alive. But your hand goes to your pocket and finds it empty: the tin locket belongs to the river now. You climb anyway. Some things you carry without carrying.",
+      "mood": "danger",
+      "onEnter": { "loseItems": ["tin-locket"], "stats": { "hope": -1 } },
+      "choices": [
+        { "text": "Climb the last switchbacks, shivering", "goto": "k3" }
+      ]
+    },
+    "w2-ford": {
+      "text": "— THE WANDERER —\n\nThe ford is cold but honest, and the long bank eats an hour you didn't have to spare. By the time you reach the switchbacks, the comet has cleared the eastern peaks — a slow silver tear in the sky, already crossing.\n\nFaster, then.",
+      "mood": "calm",
+      "choices": [
+        { "text": "Climb the last switchbacks at a run", "goto": "k3" }
+      ]
+    },
+    "k3": {
+      "text": "— THE KEEPER —\n\nThe lantern room is ready as it's going to be, and now comes the hardest part of any lighthouse: the waiting.\n\nThe sea whispers up the tower the way it always does at the dark hour, and it knows your softest fear and says it plainly: *what if they don't come? What if the storm, the river, the mountain — what if the legend is just a story, and you light the lamp for no one?*",
+      "mood": "mystery",
+      "choices": [
+        { "text": "Answer the sea out loud: \"They are coming.\"", "goto": "w3", "effects": { "stats": { "hope": 2 } } },
+        { "text": "Take the bundle of their old letters from the drawer and reread every one", "goto": "w3", "effects": { "gainItems": ["old-letters"], "stats": { "hope": 1 } } },
+        { "text": "Let the whisper in. It might be right.", "goto": "w3", "effects": { "stats": { "hope": -2 } } }
+      ]
+    },
+    "w3": {
+      "text": "— THE WANDERER —\n\nThe summit, at last: a bald crown of rock holding the mirror-pool, a circle of rainwater going still as the storm breaks apart overhead. Stars wheel out between the shredding clouds.\n\nAnd the comet — closer now, terribly bright. Below, across all those drowned miles, the coast where your love is climbing lighthouse stairs. The wind up here is wild enough to carry anything.",
+      "mood": "mystery",
+      "writeIn": {
+        "prompt": "Send something across the miles — a vow, a joke, the thing you never say out loud. What do you shout into the wind?",
+        "outcomes": [
+          { "text": "The light flares on the coast — it reached them, word for word", "goto": "k4", "effects": { "stats": { "hope": 1 } } },
+          { "text": "The wind keeps it for itself — but shouting it changed the shouter", "goto": "k4" }
+        ]
+      }
+    },
+    "k4": {
+      "text": "— THE KEEPER —\n\nMoonrise. Through the lantern-room glass you see the comet sliding toward its crossing, and somewhere beneath it, a mountain you cannot see holds the person you can always see, eyes closed or open.\n\nThe great lamp waits. What will you feed it?",
+      "mood": "danger",
+      "choices": [
+        { "text": "The whale-oil — every last drop. Let it BLAZE.", "goto": "w4", "require": { "items": ["whale-oil"] }, "effects": { "gainItems": ["blazing-light"], "loseItems": ["whale-oil"] }, "lockedText": "the cellar cask never made it up the stairs" },
+        { "text": "The bare wick — behind storm-glass scrubbed so clear it doubles the flame", "goto": "w4", "require": { "items": ["clear-glass"] }, "effects": { "gainItems": ["blazing-light"] }, "lockedText": "the glass is salt-dark and dims the flame" },
+        { "text": "The old letters. Every page you saved. Love can be tinder too.", "goto": "w4", "require": { "items": ["old-letters"] }, "effects": { "gainItems": ["blazing-light"], "loseItems": ["old-letters"], "award": ["what-we-wrote"] }, "lockedText": "the letters are still in their drawer, unread tonight", "hideIfLocked": true },
+        { "text": "Light what remains and pray it carries", "goto": "w4", "effects": { "gainItems": ["faint-light"] } }
+      ]
+    },
+    "w4": {
+      "text": "— THE WANDERER —\n\nIt happens all at once: the comet touches the horizon-line of the sea, and from the coast a light answers — rising, sweeping, reaching across the drowned miles toward your mountain. The mirror-pool at your feet catches both: starfall above, lamplight below, two fires folding toward each other on the water.\n\nThe air goes strange and soft, like a page about to turn.",
+      "mood": "victory",
+      "choices": [
+        { "text": "Hold the locket high so it catches both lights at once", "goto": "end-two-lights", "require": { "items": ["tin-locket", "star-words", "blazing-light"] }, "hideIfLocked": true },
+        { "text": "Speak the star-words and step into the reflection", "goto": "end-folded", "require": { "items": ["star-words", "blazing-light"] }, "lockedText": "you need the words, and a light strong enough to hold them" },
+        { "text": "Step into the reflection on faith alone", "roll": { "chance": 0.5, "perStat": { "hope": 0.05 }, "success": "end-folded", "failure": "end-almost" }, "require": { "items": ["blazing-light"] }, "lockedText": "the light from the coast is too faint to stand in" },
+        { "text": "Kneel at the pool's edge, hand on your heart, and watch", "goto": "end-letters" }
+      ]
+    },
+    "end-two-lights": {
+      "text": "— BOTH —\n\nThe locket blazes — lamplight on one face, starlight on the other — and snaps open like a little door.\n\nAnd then there are two of you on the summit, and two of you in the lantern room, because the world has folded so completely it can't tell which is which. You meet in the middle of the fold: half sea-wind, half mountain-rain, entirely together. The comet hangs overhead as if pausing to watch.\n\nThe old astronomer was right about the words. But the locket — carried through storm and river and doubt — that part was all you. Both of you.\n\nWhen the comet moves on, the fold stays. Some doors, once opened, refuse to close.",
+      "mood": "victory",
+      "onEnter": { "award": ["two-lights"] },
+      "ending": { "id": "two-lights", "name": "Two Lights, One Door" }
+    },
+    "end-folded": {
+      "text": "— BOTH —\n\nThe beam and the starfall cross, and the world folds like paper.\n\nOne step: pine-needles. The next: salt-worn lantern-room boards. You are standing together where the two lights meet, close enough to feel the other laughing before you hear it, and the miles — all of them, every last one — are creased flat beneath your feet.\n\nIt lasts until the comet passes. It is enough. It is so much more than enough. And next year, the comet returns — but you both suspect you won't need it. People who have folded the world once tend to find shorter ways back to each other.",
+      "mood": "victory",
+      "ending": { "id": "folded", "name": "Where the Miles Fold" }
+    },
+    "end-almost": {
+      "text": "— BOTH —\n\nYou step into the reflection — and the world flickers, almost folds, holds... then settles back, gentle as a sigh.\n\nBut for one heartbeat you were there: you smelled the lamp-oil, you smelled the rain. And in the lantern room, someone heard your voice say their name, clear as a bell in an empty room — and answered.\n\nThe comet sails on. You both stand a long time in your separate nights, hands over your hearts, knowing — *knowing* — it nearly worked. Next year it will. You'll bring the words next time, and they'll bring a brighter light.",
+      "mood": "calm",
+      "ending": { "id": "almost", "name": "The Next Comet" }
+    },
+    "end-letters": {
+      "text": "— BOTH —\n\nYou don't step in. Maybe the light was too faint; maybe the moment was too large. You watch the lights touch on the water, and across the miles, the Keeper watches the comet thread the beam, and the night is beautiful and you are both in it, apart.\n\nBut something did cross. The next letter that arrives smells of mountain pine, though it traveled by sea. The one you send back arrives warm, as if carried in someone's coat pocket. The legend, it turns out, has small mercies for those who almost believed.\n\nYou keep writing. You start planning. Some distances get folded; others get walked, one determined day at a time.",
+      "mood": "calm",
+      "ending": { "id": "letters", "name": "Ink & Ember" }
+    },
+    "end-sea": {
+      "text": "— THE KEEPER —\n\nThe rail is wet. The wind is jealous. Your boot finds the one patch of gallery the salt made glass.\n\nThe sea takes its time with the falling, the way it takes its time with everything. Your last sight is the comet breaking through the clouds — right on schedule — above a tower that will stay dark tonight.\n\nOn a far summit, someone watches a coastline that never lights, and begins, slowly, to walk down. Some storms you should not climb out into. Not even for love. *Especially* not for love — because love is owed your safe return.",
+      "mood": "danger",
+      "ending": { "id": "taken", "name": "Taken by the Tide" }
+    },
+    "end-faded": {
+      "text": "— BOTH —\n\nDoubt is also a storm, and tonight it found every crack.\n\nThe lamp gets lit — late, halfhearted, more habit than hope. The summit gets reached — eventually, feet dragging. The comet crosses a beam that flickers like an apology, and nothing folds, because the legend was never about the light or the words. It was about believing the other person would be there.\n\nThe last letter arrives a month later. It is kind. They are both kind, to the end. Some loves don't break — they fade, like a comet leaving, still bright, already gone.\n\n(Hope hit zero. It only takes one of you to refuse the whisper.)",
+      "mood": "danger",
+      "ending": { "id": "faded", "name": "The Last Letter" }
+    }
+  }
+}

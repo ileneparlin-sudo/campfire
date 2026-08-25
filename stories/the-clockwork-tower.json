@@ -1,0 +1,108 @@
+{
+  "meta": {
+    "id": "the-clockwork-tower",
+    "title": "The Clockwork Tower",
+    "author": "Demo Story",
+    "blurb": "An abandoned tower of gears and frozen time looms at the edge of town. They say the old clockmaker never truly left. Tonight, you find out.",
+    "start": "arrival",
+    "stats": { "nerve": 0 },
+    "items": ["lantern"],
+    "achievements": {
+      "spelunker": { "name": "Spelunker", "desc": "Explore the cellar by lantern light" },
+      "diplomat": { "name": "Gear Diplomat", "desc": "Win the guardian over with the silver cog" },
+      "daredevil": { "name": "Daredevil", "desc": "Charge the guardian and live to tell of it", "secret": true }
+    }
+  },
+  "scenes": {
+    "arrival": {
+      "text": "Dusk settles over the valley as you reach the Clockwork Tower. Its great clock face stares down at you, hands frozen at midnight for as long as anyone can remember.\n\nThe iron front door hangs ajar. A narrow path winds around to an overgrown garden in the back.",
+      "mood": "mystery",
+      "choices": [
+        { "text": "Push through the front door", "goto": "hall" },
+        { "text": "Circle around to the garden", "goto": "garden" },
+        { "text": "Turn back — this was a bad idea", "goto": "end-long-way" }
+      ]
+    },
+    "garden": {
+      "text": "The garden is a tangle of brass weeds — actual brass, leaves stamped from sheet metal, squeaking in the wind. Half-buried beside a sundial you find a rusted toolbox.\n\nInside: a small BRASS KEY, etched with a spiral of gears. Finding it steadies you somehow. There's a cellar hatch nearby, and the front door is back around the corner.",
+      "mood": "calm",
+      "choices": [
+        { "text": "Take the key and descend through the cellar hatch", "goto": "cellar", "effects": { "gainItems": ["brass-key"], "stats": { "nerve": 1 } } },
+        { "text": "Take the key and head to the front door", "goto": "hall", "effects": { "gainItems": ["brass-key"], "stats": { "nerve": 1 } } }
+      ]
+    },
+    "hall": {
+      "text": "The entrance hall is a forest of pendulums, each swinging silently out of rhythm with the rest. Dust motes hang in the air like stopped seconds.\n\nA grand staircase spirals upward. Across the hall, the inside of the great clock face glows faintly. A stone stairway also leads down into darkness.",
+      "mood": "mystery",
+      "choices": [
+        { "text": "Climb the spiral staircase", "goto": "stairs" },
+        { "text": "Examine the great clock face", "goto": "clockface" },
+        { "text": "Take the stone stairs down to the cellar", "goto": "cellar" }
+      ]
+    },
+    "clockface": {
+      "text": "Up close, the clock face is a stained-glass moon, its frozen hands thick as roof beams. Scratched into the brass rim, you read:\n\n\"TIME DOES NOT STOP. IT WAITS FOR A WORTHIER HAND. — A.V., CLOCKMAKER\"\n\nUnderstanding flickers through you like a wound spring releasing. You feel braver.",
+      "mood": "mystery",
+      "onEnter": { "stats": { "nerve": 1 } },
+      "choices": [
+        { "text": "Return to the hall", "goto": "hall" },
+        { "text": "Head straight for the spiral staircase", "goto": "stairs" }
+      ]
+    },
+    "cellar": {
+      "text": "The cellar swallows light. Somewhere in the blackness, machinery breathes — a slow tick... tick... tick, like a heart deciding whether to continue.",
+      "mood": "danger",
+      "choices": [
+        { "text": "Light your lantern and explore", "goto": "cellar-explore", "require": { "items": ["lantern"] }, "lockedText": "you need a light source" },
+        { "text": "Feel your way back up the stairs", "goto": "hall" }
+      ]
+    },
+    "cellar-explore": {
+      "text": "Lantern light reveals the tower's roots: a vast bronze mainspring, coiled like a sleeping serpent. On a workbench beside it rests a SILVER COG, polished and strangely warm, clearly removed from something important.\n\nYou pocket it. The ticking pauses — then resumes, a little faster.",
+      "mood": "mystery",
+      "onEnter": { "gainItems": ["silver-cog"], "award": ["spelunker"] },
+      "choices": [
+        { "text": "Climb back up to the hall", "goto": "hall" }
+      ]
+    },
+    "stairs": {
+      "text": "Halfway up the spiral stairs, the wall unfolds.\n\nA GUARDIAN steps out — a figure of interlocking gears in the shape of a tall man, its face a clock with no hands. It does not attack. It simply waits, palm extended, blocking the way up.",
+      "mood": "danger",
+      "choices": [
+        { "text": "Place the silver cog in its palm", "goto": "workshop", "require": { "items": ["silver-cog"] }, "effects": { "loseItems": ["silver-cog"], "award": ["diplomat"] }, "lockedText": "you have nothing it wants" },
+        { "text": "Meet its empty gaze and walk past slowly", "goto": "workshop", "require": { "stats": { "nerve": { "min": 2 } } }, "lockedText": "you can't hold your nerve" },
+        { "text": "Charge past it", "roll": { "chance": 0.25, "perStat": { "nerve": 0.15 }, "success": "workshop", "failure": "end-gears", "successEffects": { "award": ["daredevil"], "stats": { "nerve": 1 } } } },
+        { "text": "Retreat to the hall", "goto": "hall" }
+      ]
+    },
+    "workshop": {
+      "text": "The top of the tower is one round room: the clockmaker's workshop. Tools hang in perfect order. In the center stands the MASTER CLOCK, a cabinet of crystal and brass with a single keyhole.\n\nBy the window, translucent as old glass, sits the ghost of the clockmaker. \"A visitor,\" he says, unsurprised. \"The tower stopped when I died — it waits for a worthier hand. Yours, perhaps. Stay, and I will teach you everything. Or if you carry my key and your courage... wind the clock yourself.\"",
+      "mood": "mystery",
+      "choices": [
+        { "text": "Unlock the master clock and wind it", "goto": "end-master", "require": { "items": ["brass-key"], "stats": { "nerve": { "min": 2 } } }, "lockedText": "requires the brass key and steady nerves" },
+        { "text": "Accept his offer and become his apprentice", "goto": "end-apprentice" },
+        { "text": "Flee down the stairs and never look back", "goto": "end-long-way" }
+      ]
+    },
+    "end-long-way": {
+      "text": "You walk home the long way, under ordinary stars, past houses where ordinary clocks tick at ordinary speeds.\n\nYou tell no one where you went. But some nights, when the wind is right, you hear a single chime from the valley's edge — and wonder what was waiting at the top.",
+      "mood": "calm",
+      "ending": { "id": "long-way-home", "name": "The Long Way Home" }
+    },
+    "end-gears": {
+      "text": "You lunge. The guardian moves like a watch snapping shut.\n\nGears fold around you — not crushing, just... incorporating. Your last thought, as you become part of the tower's machinery, is that the ticking sounds almost like a lullaby.\n\nThe tower has a new part. It keeps better time now.",
+      "mood": "danger",
+      "ending": { "id": "gears-of-ruin", "name": "Gears of Ruin" }
+    },
+    "end-apprentice": {
+      "text": "You stay. The ghost is a patient teacher, and the tower is a patient school.\n\nYears later, travelers speak of a tower where a young clockmaker repairs anything brought to them — watches, music boxes, hearts of all kinds — while an old man's voice hums approval from empty air.",
+      "mood": "calm",
+      "ending": { "id": "apprentice", "name": "The Clockmaker's Apprentice" }
+    },
+    "end-master": {
+      "text": "The brass key turns. The master clock shudders — and the whole tower inhales.\n\nPendulums catch their rhythm. The frozen hands on the great face sweep to the true hour, and a chime rolls across the valley for the first time in fifty years. The ghost smiles, fading like morning fog. \"A worthier hand,\" he says. \"It's yours now.\"\n\nThe Clockwork Tower has a new master.",
+      "mood": "victory",
+      "ending": { "id": "master", "name": "Master of the Tower" }
+    }
+  }
+}

@@ -1,0 +1,1492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Campfire</title>
+<style>
+  :root {
+    --bg: #1a1625;
+    --panel: #241f33;
+    --panel2: #2d2742;
+    --text: #e8e3f3;
+    --dim: #9b92b3;
+    --accent: #e8a84a;
+    --accent2: #8a6fd1;
+    --good: #6fd18a;
+    --bad: #d16f6f;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: Georgia, 'Times New Roman', serif;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 24px 16px;
+  }
+  #app { width: 100%; max-width: 760px; }
+
+  header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 12px; flex-wrap: wrap; }
+  header h1 { font-size: 1.3rem; color: var(--accent); font-weight: normal; letter-spacing: 0.5px; }
+  .toolbar { display: flex; gap: 8px; flex-wrap: wrap; }
+  button {
+    font-family: inherit; font-size: 0.9rem;
+    background: var(--panel2); color: var(--text);
+    border: 1px solid #463d63; border-radius: 8px;
+    padding: 8px 14px; cursor: pointer; transition: background 0.15s, border-color 0.15s;
+  }
+  button:hover { background: #38305280; border-color: var(--accent2); }
+  button.primary { background: var(--accent2); border-color: var(--accent2); color: #fff; }
+  button.primary:hover { background: #9d85dd; }
+  button:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  .panel { background: var(--panel); border: 1px solid #352d4d; border-radius: var(--radius); padding: 28px; }
+
+  /* ---------- title screen ---------- */
+  #titleScreen { text-align: center; padding: 44px 28px; }
+  #titleScreen .app-title { font-size: 2.4rem; color: var(--accent); margin-bottom: 4px; }
+  #titleScreen .app-sub { color: var(--dim); font-style: italic; margin-bottom: 26px; }
+  #titleScreen .menu { display: flex; flex-direction: column; gap: 10px; align-items: center; }
+  #titleScreen .menu button { width: 300px; font-size: 1rem; padding: 12px; }
+  #titleScreen .menu select {
+    width: 300px; font-size: 1rem; padding: 12px; font-family: inherit;
+    background: var(--panel2); color: var(--text); border: 1px solid #463d63; border-radius: 8px; cursor: pointer;
+  }
+  #titleScreen .menu-label { color: var(--dim); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 2px; margin: 18px 0 2px; }
+  #resumeRow { margin-top: 16px; }
+  #resumeRow summary { color: var(--dim); cursor: pointer; font-size: 0.9rem; }
+  #resumeRow .row { display: flex; gap: 8px; justify-content: center; margin-top: 10px; }
+  #resumeInput {
+    width: 280px; padding: 9px; border-radius: 8px; border: 1px solid #463d63;
+    background: var(--panel2); color: var(--text); font-family: monospace; font-size: 0.85rem;
+  }
+
+  /* ---------- library ---------- */
+  #library { margin-top: 30px; text-align: left; max-width: 520px; margin-left: auto; margin-right: auto; }
+  #library h3 { color: var(--dim); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 10px; }
+  .lib-item { background: var(--panel2); border-radius: 8px; padding: 10px 14px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .lib-item .t { cursor: pointer; }
+  .lib-item .t:hover { color: var(--accent); }
+  .lib-item .meta { color: var(--dim); font-size: 0.8rem; }
+  .lib-item .x { color: var(--dim); cursor: pointer; padding: 2px 8px; }
+  .lib-item .x:hover { color: var(--bad); }
+
+  /* ---------- game screen ---------- */
+  #gameScreen { display: none; }
+  #progress { color: var(--dim); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 14px; display: flex; justify-content: space-between; }
+  #storyScroll { line-height: 1.85; font-size: 1.08rem; margin-bottom: 8px; }
+  .beat-icon-wrap { text-align: center; margin: 4px 0 14px; }
+  .beat-icon { width: 56px; height: 56px; color: var(--accent); opacity: 0.9; }
+  .entry { margin-bottom: 14px; }
+  .entry .who { color: var(--dim); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 2px; }
+  .entry.a .who { color: var(--accent); }
+  .entry.b .who { color: var(--accent2); }
+  .entry.seed { font-style: italic; color: var(--dim); border-left: 2px solid #463d63; padding-left: 14px; }
+  .entry.scene-now { white-space: pre-wrap; }
+  .entry.past-scene { color: var(--dim); white-space: pre-wrap; font-size: 0.98rem; }
+  .entry.fate-line { color: var(--dim); font-style: italic; }
+  .entry.fate-line .who { color: var(--good); }
+  .entry.ending-line { border-top: 1px solid #352d4d; padding-top: 12px; }
+
+  #promptCard {
+    background: linear-gradient(135deg, #3a2f55, #2d2742);
+    border: 1px solid var(--accent); border-radius: 10px;
+    padding: 14px 18px; margin: 18px 0 12px;
+  }
+  #promptCard .label { color: var(--dim); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 2px; }
+  #promptCard .card-text { color: var(--accent); font-size: 1.05rem; font-style: italic; margin-top: 3px; }
+
+  #turnBar { margin: 0 0 10px; padding: 9px 14px; border-radius: 9px; background: var(--panel2); border: 1px solid var(--accent2); font-size: 0.92rem; }
+  #entryText {
+    width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #463d63;
+    background: var(--panel2); color: var(--text); font-family: inherit; font-size: 1.05rem;
+    resize: vertical; line-height: 1.6;
+  }
+  #inkRow { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+  #inkLeft { color: var(--dim); font-size: 0.82rem; }
+  #inkLeft.low { color: var(--bad); }
+
+  /* ---------- fate box (story mode) ---------- */
+  #fateBox { display: none; }
+  #fateBox .fate-said {
+    background: var(--panel2); border-radius: 8px; padding: 12px 16px; font-style: italic; margin-bottom: 12px;
+  }
+  #fateBox .fate-said .who { color: var(--accent); font-style: normal; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 3px; }
+  .fate-opt {
+    display: block; width: 100%; text-align: left; padding: 13px 16px; font-size: 0.98rem;
+    background: var(--panel2); border: 1px solid #463d63; border-radius: 10px; margin-bottom: 8px; line-height: 1.5;
+  }
+  .fate-opt:hover:not(:disabled) { border-color: var(--accent); }
+
+  /* ---------- marks (done screen) ---------- */
+  #marksRow { color: var(--dim); font-size: 0.85rem; margin-top: 10px; }
+  #marksRow .mk { color: var(--accent); }
+
+  /* ---------- finish screen ---------- */
+  #doneBox { display: none; margin-top: 18px; text-align: center; }
+  #doneBox .fin { color: var(--accent); font-size: 1.3rem; margin-bottom: 14px; }
+  #titleInput {
+    width: 100%; max-width: 380px; padding: 10px; border-radius: 8px; border: 1px solid #463d63;
+    background: var(--panel2); color: var(--text); font-family: inherit; font-size: 1.05rem; text-align: center;
+  }
+  #doneBox .btn-row { display: flex; gap: 8px; justify-content: center; margin-top: 14px; flex-wrap: wrap; }
+
+  /* ---------- modals ---------- */
+  #modalBack { position: fixed; inset: 0; background: #0f0c18cc; display: none; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
+  .modal { background: var(--panel); border: 1px solid #463d63; border-radius: var(--radius); padding: 26px; max-width: 500px; width: 100%; display: none; max-height: 88vh; overflow-y: auto; }
+  .modal h2 { color: var(--accent); font-size: 1.2rem; margin-bottom: 14px; font-weight: normal; }
+  .modal p { line-height: 1.5; margin-bottom: 12px; font-size: 0.95rem; }
+  .modal .muted { color: var(--dim); font-size: 0.85rem; }
+  .modal label { display: block; color: var(--dim); font-size: 0.85rem; margin: 10px 0 4px; }
+  .modal input[type=text], .modal textarea, .modal select {
+    width: 100%; padding: 9px; border-radius: 8px; border: 1px solid #463d63;
+    background: var(--panel2); color: var(--text); font-family: inherit; font-size: 0.95rem;
+  }
+  .modal textarea { font-family: monospace; font-size: 0.8rem; height: 90px; resize: vertical; }
+  .modal .btn-row { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+  .seed-pick { background: var(--panel2); border: 1px solid #463d63; border-radius: 8px; padding: 10px 14px; margin-bottom: 6px; cursor: pointer; font-size: 0.92rem; line-height: 1.5; }
+  .seed-pick:hover, .seed-pick.sel { border-color: var(--accent); }
+  .online-code { font-family: monospace; font-size: 1.6rem; letter-spacing: 4px; color: var(--accent); text-align: center; padding: 10px; background: var(--panel2); border-radius: 8px; margin: 10px 0; }
+  #olStatus { color: var(--dim); font-size: 0.9rem; min-height: 1.2em; margin-top: 8px; }
+  #readBody { line-height: 1.8; white-space: pre-wrap; }
+
+  #toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: var(--panel2); border: 1px solid var(--accent2); border-radius: 8px;
+    padding: 10px 20px; display: none; z-index: 200; font-size: 0.95rem; max-width: 90vw;
+  }
+  footer { margin-top: 18px; text-align: center; color: var(--dim); font-size: 0.82rem; }
+  input[type=file] { display: none; }
+</style>
+</head>
+<body>
+<!-- Reusable line-art icon sprite. Each beat/ending in a tale can reference one via "icon": "id"
+     (see the embedded-tale block below). Add more <symbol>s here to give a story new pictures. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<defs>
+
+<symbol id="icon-ticket-moon" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+  <rect x="6" y="20" width="52" height="24" rx="4"/>
+  <line x1="20" y1="20" x2="20" y2="44" stroke-dasharray="3 4"/>
+  <g transform="translate(34,26) scale(0.9)">
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="currentColor" stroke="none"/>
+  </g>
+</symbol>
+
+<symbol id="icon-lit-window" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+  <rect x="16" y="10" width="32" height="30" rx="3"/>
+  <line x1="32" y1="10" x2="32" y2="40"/>
+  <line x1="16" y1="24" x2="48" y2="24"/>
+  <line x1="8" y1="52" x2="56" y2="52"/>
+  <rect x="26" y="44" width="12" height="4" rx="1"/>
+  <line x1="28" y1="48" x2="28" y2="52"/>
+  <line x1="36" y1="48" x2="36" y2="52"/>
+</symbol>
+
+<symbol id="icon-ledger" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M32 18 C24 14 14 15 8 19 L8 46 C14 42 24 41 32 45 Z"/>
+  <path d="M32 18 C40 14 50 15 56 19 L56 46 C50 42 40 41 32 45 Z"/>
+  <line x1="32" y1="18" x2="32" y2="45"/>
+  <line x1="14" y1="24" x2="24" y2="22.5"/>
+  <line x1="14" y1="30" x2="24" y2="28.5"/>
+</symbol>
+
+<symbol id="icon-coat" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+  <circle cx="32" cy="7" r="2"/>
+  <path d="M32 9 v5"/>
+  <path d="M20 17 L32 13 L44 17 L49 26 L40 23 L40 50 L24 50 L24 23 L15 26 Z"/>
+</symbol>
+
+<symbol id="icon-lantern" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M32 6 v6"/>
+  <path d="M24 12 h16"/>
+  <path d="M26 12 L22 20 L22 42 L26 50 L38 50 L42 42 L42 20 L38 12 Z"/>
+  <line x1="22" y1="20" x2="42" y2="20"/>
+  <line x1="22" y1="42" x2="42" y2="42"/>
+  <circle cx="32" cy="31" r="6" fill="currentColor" stroke="none"/>
+</symbol>
+
+<symbol id="icon-token" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+  <circle cx="32" cy="32" r="18"/>
+  <circle cx="32" cy="32" r="12" stroke-dasharray="2 3.5"/>
+  <path d="M27 32 l4 4 l8 -8"/>
+</symbol>
+
+<symbol id="icon-receipt" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M14 8 h36 v34 l-6 -5 -6 5 -6 -5 -6 5 -6 -5 -6 5 Z"/>
+  <line x1="20" y1="18" x2="44" y2="18"/>
+  <line x1="20" y1="26" x2="44" y2="26"/>
+  <line x1="20" y1="34" x2="36" y2="34"/>
+</symbol>
+
+<symbol id="icon-constellation" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+  <circle cx="14" cy="16" r="2.5" fill="currentColor" stroke="none"/>
+  <circle cx="30" cy="10" r="2" fill="currentColor" stroke="none"/>
+  <circle cx="46" cy="18" r="2.5" fill="currentColor" stroke="none"/>
+  <circle cx="20" cy="32" r="2" fill="currentColor" stroke="none"/>
+  <circle cx="38" cy="34" r="2.5" fill="currentColor" stroke="none"/>
+  <circle cx="52" cy="30" r="2" fill="currentColor" stroke="none"/>
+  <circle cx="12" cy="46" r="2" fill="currentColor" stroke="none"/>
+  <circle cx="28" cy="50" r="2.5" fill="currentColor" stroke="none"/>
+  <circle cx="46" cy="48" r="2" fill="currentColor" stroke="none"/>
+  <path d="M6 58 h52"/>
+</symbol>
+
+<symbol id="icon-platform-moon" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+  <g transform="translate(30,4) scale(1.3)">
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="currentColor" stroke="none"/>
+  </g>
+  <line x1="6" y1="46" x2="58" y2="46"/>
+  <line x1="10" y1="46" x2="10" y2="54"/>
+  <line x1="54" y1="46" x2="54" y2="54"/>
+  <line x1="4" y1="54" x2="60" y2="54"/>
+</symbol>
+
+</defs>
+</svg>
+<div id="app">
+  <header>
+    <h1>🔥 Campfire</h1>
+    <div class="toolbar">
+      <button id="btnTitle">Title Screen</button>
+      <button id="btnSend" style="display:none">💌 Send to partner</button>
+    </div>
+  </header>
+
+  <div id="titleScreen" class="panel">
+    <div class="app-title">Campfire</div>
+    <div class="app-sub">stories you tell together</div>
+    <div class="menu">
+      <div class="menu-label">📖 Story adventure — authored tale, your voices</div>
+      <button id="btnTaleContinue" class="primary" style="display:none">Continue the story</button>
+      <select id="taleSelect"></select>
+      <button id="btnTale" class="primary">📖 Begin the story</button>
+      <button id="btnTaleHost">🌐 Host the story live</button>
+      <button id="btnTaleLoad">Load a story file…</button>
+      <div class="menu-label">🔥 Freeform — prompts only, you write everything</div>
+      <button id="btnContinue" style="display:none">Continue freeform story</button>
+      <button id="btnNew">🔥 Start a freeform story</button>
+      <button id="btnHost">🌐 Host freeform live</button>
+      <div class="menu-label">🌐 Joining your partner?</div>
+      <button id="btnJoin">Join a live room</button>
+    </div>
+    <details id="resumeRow">
+      <summary>Have a code from your partner?</summary>
+      <div class="row">
+        <input id="resumeInput" type="text" placeholder="Paste code or link…">
+        <button id="btnResume">Resume</button>
+      </div>
+    </details>
+    <div id="library">
+      <h3 id="libHeading">Finished stories</h3>
+      <div id="libList"></div>
+    </div>
+  </div>
+
+  <div id="gameScreen" class="panel">
+    <div id="progress"><span id="progLeft"></span><span id="progRight"></span></div>
+    <div id="storyScroll"></div>
+    <div id="promptCard">
+      <div class="label" id="cardLabel">Prompt</div>
+      <div class="card-text" id="cardText"></div>
+    </div>
+    <div id="turnBar"></div>
+    <div id="writeArea">
+      <textarea id="entryText" rows="3" placeholder="One to three sentences…"></textarea>
+      <div id="inkRow">
+        <span id="inkLeft"></span>
+        <button id="btnCommit" class="primary">Add to the story</button>
+      </div>
+    </div>
+    <div id="fateBox">
+      <div class="fate-said">
+        <span class="who" id="fateWho"></span>
+        <span id="fateSaid"></span>
+      </div>
+      <div id="fateOpts"></div>
+    </div>
+    <div id="doneBox">
+      <div class="fin">✦ The End ✦</div>
+      <div id="marksRow"></div>
+      <input id="titleInput" type="text" placeholder="Name your story…">
+      <div class="btn-row">
+        <button id="btnSave" class="primary">Save to library</button>
+        <button id="btnExport">Download .txt</button>
+        <button id="btnAgain">Back to the fire</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>Stories autosave. Finished stories live in your library on this device.</footer>
+</div>
+
+<div id="modalBack">
+  <div class="modal" id="setupModal">
+    <h2>🔥 Start a freeform story</h2>
+    <label>Your name</label>
+    <input type="text" id="suNameA" placeholder="e.g., Ilene">
+    <label>Your partner's name</label>
+    <input type="text" id="suNameB" placeholder="e.g., Alex">
+    <label>Who writes first?</label>
+    <select id="suFirst"><option value="0">Me</option><option value="1">My partner</option></select>
+    <label>Story length</label>
+    <select id="suLen">
+      <option value="8">Short — 8 turns + endings</option>
+      <option value="12" selected>Classic — 12 turns + endings</option>
+      <option value="20">Long — 20 turns + endings</option>
+    </select>
+    <label>Pick an opening (or write your own below)</label>
+    <div id="seedList"></div>
+    <input type="text" id="suSeedCustom" placeholder="…or write your own opening line">
+    <div class="btn-row">
+      <button class="primary" id="suStart">Light the fire</button>
+      <button id="suCancel">Cancel</button>
+    </div>
+  </div>
+
+  <div class="modal" id="taleSetupModal">
+    <h2 id="tsTitle">📖 Story</h2>
+    <p class="muted" id="tsBlurb"></p>
+    <label>Your name</label>
+    <input type="text" id="tsNameA" placeholder="e.g., Ilene">
+    <label id="tsNameBLabel">Your partner's name</label>
+    <input type="text" id="tsNameB" placeholder="e.g., Alex">
+    <label id="tsRoleLabel">Who plays the first role?</label>
+    <select id="tsRole"><option value="0">Me</option><option value="1">My partner</option></select>
+    <div class="btn-row">
+      <button class="primary" id="tsStart">Begin the story</button>
+      <button id="tsCancel">Cancel</button>
+    </div>
+  </div>
+
+  <div class="modal" id="onlineModal">
+    <h2>🌐 Live room</h2>
+    <p class="muted" id="olBlurb"></p>
+    <div id="olHostFields">
+      <label>Room code</label>
+      <div class="online-code" id="olCode">·····</div>
+    </div>
+    <div id="olJoinFields">
+      <label>Your name</label>
+      <input type="text" id="olName" placeholder="Your name">
+      <label>Room code from your partner</label>
+      <input type="text" id="olJoinCode" placeholder="e.g., KWQ4R" maxlength="5" style="text-transform:uppercase">
+      <div class="btn-row"><button class="primary" id="olJoinGo">Join</button></div>
+    </div>
+    <div id="olStatus"></div>
+    <div class="btn-row"><button id="olClose">Close</button></div>
+  </div>
+
+  <div class="modal" id="handoffModal">
+    <h2>💌 Your part is in!</h2>
+    <p>Now it's <strong id="hoWho"></strong>'s turn. Send them this:</p>
+    <textarea id="hoCode" readonly></textarea>
+    <p class="muted" id="hoHint"></p>
+    <div class="btn-row">
+      <button class="primary" id="btnCopy">📋 Copy</button>
+      <button id="btnPassDev">We're together — pass the device</button>
+      <button id="hoClose">Close</button>
+    </div>
+  </div>
+
+  <div class="modal" id="readModal">
+    <h2 id="readTitle"></h2>
+    <p class="muted" id="readMeta"></p>
+    <div id="readBody"></div>
+    <div class="btn-row">
+      <button id="readExport">Download .txt</button>
+      <button id="readClose">Close</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+<input type="file" id="taleFileInput" accept=".json,application/json">
+
+<!-- Built-in stories. Each one is its own <script class="embedded-tale"> block — to add another,
+     paste a new block right after this one with the same class and a unique meta.id. They all show
+     up in the "Story adventure" dropdown automatically; no other code needs to change. -->
+<script type="application/json" class="embedded-tale" id="embedded-tale-the-midnight-train">
+{
+  "meta": {
+    "id": "the-midnight-train",
+    "title": "The Midnight Train",
+    "blurb": "A sleeper train that stops at stations that don't exist. One ticket between the two of you — and a conductor who finds that fascinating. One ride, start to finish.",
+    "roles": ["the Bold One", "the Careful One"],
+    "start": "b1"
+  },
+  "beats": {
+    "b1": {
+      "icon": "ticket-moon",
+      "scene": "The 11:58 sleeper pulls out exactly on time, which is the last normal thing it does.\n\nYou two found the platform by accident — a stairway in the station that the map insists is a wall. Now you're settled into a velvet compartment as the city lights smear past, and the conductor appears in the doorway: tall, silver-buttoned, with a ticket punch shaped like a crescent moon.\n\n\"Tickets,\" he says. You have one. Between the two of you. One.\n\nHis eyebrow suggests he has been doing this job for a very, very long time, and that this particular situation is his favorite kind.",
+      "role": 0,
+      "prompt": "One ticket, two passengers, and a conductor waiting. What do you say?",
+      "fates": [
+        { "text": "The conductor laughs — a sound like a brass bell — and punches the ticket once. \"That's the best answer I've had in a decade. Ride on. I'll be watching you two with interest.\"", "goto": "b2", "mark": "CONDUCTOR-AMUSED" },
+        { "text": "The conductor tears the ticket cleanly in half and hands one piece to each of you. \"Half a fare each. The Line will decide who owes the difference. It always does.\"", "goto": "b2", "mark": "TICKET-HALVED" },
+        { "text": "The conductor raises his lantern to your faces and goes still. \"Huh,\" he says, in the tone of a man recognizing someone from a photograph. He punches the ticket without another word and leaves quickly.", "goto": "b2", "mark": "LANTERN-LOOKED" }
+      ]
+    },
+    "b2": {
+      "icon": "lit-window",
+      "scene": "Past midnight, the windows stop showing the world.\n\nThe train glides through dark country, and then — light. A station slides by that should not exist: warm lamps, a bench, a name on the sign that you know. It looks exactly like a place you miss. A place, or a time, or a someone.\n\nThe train is not slowing. But it isn't hurrying either. Trains on this line, you begin to suspect, listen.",
+      "role": 1,
+      "prompt": "The window is showing you somewhere you miss. Tell your companion what you see — and what you'd do if the train stopped.",
+      "fates": [
+        { "text": "The station passes, and your companion takes your hand as it goes. Some places are for visiting. Some are for carrying. The compartment feels warmer after.", "goto": "b3", "mark": "CARRIED-TOGETHER" },
+        { "text": "The train slows. Audibly. Deliberately. For five terrible seconds it offers — and then glides on, leaving you both to live with what you almost did.", "goto": "b3", "mark": "THE-OFFER" },
+        { "text": "A voice from the corridor: an old passenger in a moth-soft coat, watching the same window. \"I got off at mine, once,\" she says. \"Don't.\" Then she's gone down the corridor.", "goto": "b3", "mark": "THE-WARNING" }
+      ]
+    },
+    "b3": {
+      "icon": "ledger",
+      "scene": "At 3:03 the train stops at a station that has never been printed on any timetable. The sign says PROVISIONAL. The platform is empty except for a Stationmaster with a ledger the size of a door, who steps aboard and walks directly to your compartment, as though your names are already in the book. They might be.\n\n\"One ticket. Two passengers.\" The ledger opens. A nib scratches. \"The Midnight Line runs on fairness, not money. One of you owes a fare, and fares on this line are paid in true things. A confession. A promise. A first memory. Something real.\"\n\nThe pen hovers. The train waits. Trains on this line, you now know for certain, listen.",
+      "role": 0,
+      "prompt": "The fare must be something true. What do you offer?",
+      "fates": [
+        { "text": "The Stationmaster writes it down slowly, nodding. \"Accepted. Overpaid, in fact.\" A stamped receipt is handed over: CREDIT — ONE STOP, ANY STATION, INCLUDING THE ONES THAT AREN'T.", "goto": "b4c", "mark": "FARE-CREDIT" },
+        { "text": "The ledger flips backward on its own — pages and pages — and stops. \"Mm. That has been offered before. Nineteen-twelve. The Line remembers everything.\" The nib hovers, waiting for something deeper. Whatever is offered next, it costs.", "goto": "b3d", "mark": "LEDGER-TESTED" },
+        { "text": "Before the Stationmaster can answer, the old passenger from the corridor steps in and lays a worn token on the ledger. \"Their fare's mine. I've carried spares for forty years — waiting for someone worth spending one on.\"", "goto": "b4d", "mark": "THE-PASSENGERS-DEBT", "requireAny": ["THE-WARNING", "THE-OFFER"] }
+      ]
+    },
+    "b3d": {
+      "icon": "ledger",
+      "scene": "The ledger's pages keep turning backward on their own, past your names, past dates that haven't happened yet, and stop on a blank one. The Stationmaster taps it once with the pen. \"The Line already has the easy truths,\" they say, not unkindly. \"Everyone brings the easy ones first. Try again — and mean it.\"\n\nOutside the window, PROVISIONAL does not move. It seems willing to wait as long as it takes.",
+      "role": 0,
+      "prompt": "Something truer. Something it costs you to say out loud, in front of your friend and a stranger with a ledger. What do you offer this time?",
+      "fates": [
+        { "text": "The Stationmaster's pen finally moves — fast, like it's been waiting. \"There,\" they murmur. \"Now that's a fare.\" The ledger closes on its own, gently, like it's tired.", "goto": "b4t", "mark": "PAID-TRUE" },
+        { "text": "Your companion reaches over and puts a hand flat on the page, as if to say I heard that too, and I'm not going anywhere. The pen writes it down anyway — but softer, somehow.", "goto": "b4t", "mark": "WITNESSED" },
+        { "text": "The Stationmaster doesn't write a single word. They just close the ledger and say, \"Some fares don't go in the book. They go between the two people who paid them.\" The train shudders, ready to move.", "goto": "b4t", "mark": "UNWRITTEN" }
+      ]
+    },
+    "b4c": {
+      "icon": "receipt",
+      "scene": "PROVISIONAL falls away behind the train like something remembered rather than left. In your pocket, the CREDIT receipt is still warm. Down the corridor, the conductor is walking back toward your compartment — slower this time, cap in his hands instead of on his head, which seems to matter to him.\n\nHe stops in the doorway. \"I don't usually come back,\" he says. \"But I find I have a question, and thirty years on this Line have taught me to ask it when I have it.\"",
+      "role": 1,
+      "prompt": "The conductor has a question for you two. What is it — and how do you answer, before he even finishes asking?",
+      "fates": [
+        { "text": "He asks if you know what station you're really trying to reach. You answer before you've decided you mean it — and something in his face changes, like a man hearing his own guess confirmed.", "goto": "b5", "mark": "CONDUCTOR-CONFIRMED" },
+        { "text": "He asks how long you've been friends. It's such a small question that you almost laugh — until you see how carefully he's listening to the answer.", "goto": "b5", "mark": "SMALL-QUESTION" },
+        { "text": "He doesn't finish the question. He just looks at the two of you for a long moment, puts his cap back on, and says, \"Never mind. I think I already know.\" He leaves before you can ask him what he knows.", "goto": "b5", "mark": "LEFT-UNASKED" }
+      ]
+    },
+    "b4t": {
+      "icon": "coat",
+      "scene": "The train pulls out of PROVISIONAL heavier, somehow, though nothing was loaded onto it. Whatever you offered the ledger is gone from you now and folded into the Line instead — you can feel the exact shape of its absence, like a tooth you keep checking with your tongue.\n\nThe old passenger appears in your doorway, uninvited, and sits down across from you without asking. \"First deep fare's the hardest,\" she says. \"Doesn't get lighter. Gets more familiar.\"",
+      "role": 1,
+      "prompt": "She's offering you something — advice, or company, or just the truth of what you just did. What do you say back to her?",
+      "fates": [
+        { "text": "She nods slowly at whatever you say, like you passed a test you didn't know you were taking. \"Good,\" she says. \"You'll need that, later.\"", "goto": "b5", "mark": "PASSED-HER-TEST" },
+        { "text": "Something in your answer makes her laugh — a short, surprised bark of a sound, like she hasn't done it in a while. The whole compartment seems to warm by a degree.", "goto": "b5", "mark": "SURPRISED-HER" },
+        { "text": "She goes quiet and looks out the window instead of at you, like your answer reminded her of something she'd rather not say out loud. \"Never mind,\" she says. \"Ask me again nearer the end.\"", "goto": "b5", "mark": "ASK-AGAIN" }
+      ]
+    },
+    "b4d": {
+      "icon": "token",
+      "scene": "The old passenger's token sits on the ledger where she left it, and the Stationmaster closes the book around it like a bookmark. She settles back onto the bench across from you as PROVISIONAL slides away, smoothing her moth-soft coat over her knees.\n\n\"Forty years I've carried spare fares on this Line,\" she says. \"Do you know how many people I've spent one on, before you two?\"",
+      "role": 1,
+      "prompt": "She's waiting for you to guess — or maybe to ask her something back. What do you say?",
+      "fates": [
+        { "text": "\"None,\" she says, before you've even finished guessing. \"You're the first. I hope that's not a disappointment to you.\" It very much isn't.", "goto": "b5", "mark": "FIRST-SPENT" },
+        { "text": "She answers your question with one of her own, and it's a good one — the kind that makes you look at your companion instead of her.", "goto": "b5", "mark": "HER-QUESTION" },
+        { "text": "\"That's not for tonight,\" she says, not unkindly, and pats the bench beside her instead of answering. \"Sit. I'll tell you on the way to wherever we're going.\"", "goto": "b5", "mark": "LATER-TONIGHT" }
+      ]
+    },
+    "b5": {
+      "icon": "lantern",
+      "scene": "Whatever just happened in your compartment, the corridor outside goes quiet in a way that means someone is standing in it, deciding whether to knock. It's the conductor. He comes in without being asked and sits down across from you both — the first time all night he's sat rather than stood over you.\n\n\"I said I'd be watching you two with interest,\" he says. \"I should tell you why, before we get much further down the Line. I've seen a lot of faces get on this train. Yours matched something.\"",
+      "role": 0,
+      "prompt": "He's about to tell you what your faces matched. What do you ask him before he can — or do you just let him talk?",
+      "fates": [
+        { "text": "\"A photograph,\" he says. \"In my ticket book. Two riders, a long time ago, who asked the Line for something and got it. I've been waiting to see if the Line sent you two to finish what they started.\"", "goto": "b6", "mark": "THE-PHOTOGRAPH" },
+        { "text": "He doesn't answer directly. Instead he takes out his crescent-moon punch and turns it over in his hands. \"This only makes that shape for people the Line already knows,\" he says. \"It made that shape for you two before I even asked for your ticket.\"", "goto": "b6", "mark": "ALREADY-KNOWN" },
+        { "text": "\"Doesn't matter what they matched,\" he says finally, standing back up. \"Matters what you do next. That's always been the real test.\" He leaves it at that, and leaves the compartment.", "goto": "b6", "mark": "DOESNT-MATTER" }
+      ]
+    },
+    "b6": {
+      "icon": "constellation",
+      "scene": "The window goes dark again, properly dark, the kind of dark that isn't sky. When light comes back it isn't a station at all — it's the whole Line, laid out below you like a map somebody drew from memory: hundreds of little lit windows, hundreds of compartments, each one holding two people mid-conversation, mid-decision, mid-story.\n\n\"That's the truth of it,\" says the old passenger, appearing again at your shoulder without you hearing her come in. \"It's not one train. It's every train, every night, everyone who ever needed exactly one more stop than the map allowed.\"",
+      "role": 1,
+      "prompt": "Looking down at every other compartment on the Line — every other pair of two, mid-story — what do you say to your companion?",
+      "fates": [
+        { "text": "Your companion goes quiet for a second, and then reaches over and squeezes your hand, once, like sealing something. Down below, for just a moment, every window seems to flicker in answer.", "goto": "b7", "mark": "SEALED-IT" },
+        { "text": "You both start guessing, at the same time, what's happening in one particular lit window — and you don't agree, and somehow that's the best part.", "goto": "b7", "mark": "DISAGREED-WELL" },
+        { "text": "Neither of you says anything for a while. You just watch the whole Line glow underneath you, together, until the window goes dark again and somewhere new starts sliding into view.", "goto": "b7", "mark": "WATCHED-TOGETHER" }
+      ]
+    },
+    "b7": {
+      "icon": "platform-moon",
+      "scene": "At an hour with no number, the train stops one final time. There's no station sign at all here — just a platform, and standing on it, waiting, the conductor, the Stationmaster, and the old passenger, all three, together, like they arranged this and never mentioned it.\n\nThe conductor steps up first. \"Last stop before the Line decides where you actually needed to go,\" he says. \"Everyone gets asked the same thing here, at the end. What do you want the Midnight Line to do with you two, now that it knows you?\"",
+      "role": 0,
+      "prompt": "This is the real question — the one the whole night's been leading to. What do you ask the Line for?",
+      "fates": [
+        { "text": "The three of them look at each other, and then at you, and the conductor nods slowly. \"Home, then,\" he says. \"But a Line like this never really lets go once it's found you.\" The platform dissolves, gently, into a station you know.", "goto": "end-home" },
+        { "text": "The Stationmaster taps the CREDIT still warm in your pocket. \"Spend it,\" they say. \"That's what it's for.\" And the platform reshapes itself into whatever impossible place your credit was always going to buy.", "goto": "end-credit", "requireAny": ["FARE-CREDIT"] },
+        { "text": "The old passenger touches the spot on the ledger where your deep fare is written and smiles like she's proud of you. \"Paid fares don't come back,\" she says. \"But what they buy always does. It's coming, now.\"", "goto": "end-deep", "requireAny": ["LEDGER-TESTED"] },
+        { "text": "The old passenger steps forward before the other two can answer. \"They're with me,\" she says, the way she said it once already tonight, and this time nobody argues. \"I told you I'd tell you where we're going. Come on, then.\"", "goto": "end-debt", "requireAny": ["THE-PASSENGERS-DEBT"] },
+        { "text": "The conductor holds up his lantern one more time, and this time he lets you see what he sees in it — your two faces, and behind them, faint, the two faces from the old photograph in his ticket book. \"Told you,\" he says quietly. \"The Line remembers. Now so do you.\"", "goto": "end-recognized", "requireAny": ["LANTERN-LOOKED"] }
+      ]
+    },
+    "end-home": {
+      "icon": "lit-window",
+      "scene": "The station is real — you'd know it anywhere — but you both step off changed in some way neither of you can quite name yet, and won't be able to for a few days. Some fares aren't paid the night you ride. They're paid slowly, afterward, every time you remember you were on that train at all.\n\nSomewhere behind you, a whistle sounds that no ordinary train makes.\n\nTHE END — for tonight.",
+      "ending": true
+    },
+    "end-credit": {
+      "icon": "receipt",
+      "scene": "The credit spends itself the moment you both agree where: a place, or a time, or a someone, waiting exactly where you left it, exactly as warm as you remembered. The Line delivers you there and pulls away without ceremony, like it does this sort of thing all the time.\n\nMaybe it does.\n\nTHE END — for tonight.",
+      "ending": true
+    },
+    "end-deep": {
+      "icon": "ledger",
+      "scene": "What you paid at PROVISIONAL comes back changed, the way true things always do — not as the same thing, but as something that fits the shape it left behind exactly. It's heavier to carry than it was to say, and worth every bit of the weight.\n\nTHE END — for tonight.",
+      "ending": true
+    },
+    "end-debt": {
+      "icon": "token",
+      "scene": "You follow her down the platform and onto a different train entirely — hers, it turns out, older and slower and going somewhere the timetables have never printed. She was right: she'd been saving a spare fare for forty years, waiting for someone worth spending it on.\n\nTonight, that was you two.\n\nTHE END — for tonight.",
+      "ending": true
+    },
+    "end-recognized": {
+      "icon": "lantern",
+      "scene": "The photograph in the conductor's ticket book gets one page longer tonight — the two of you, added to two others from a long time ago, riders the Line apparently never quite finished with either. He closes the book like he's tucking you in.\n\n\"See you again sometime,\" he says. He's not asking.\n\nTHE END — for tonight.",
+      "ending": true
+    }
+  }
+}
+</script>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ================= freeform decks ================= */
+  const SEEDS = [
+    "The lighthouse keeper found a door at low tide that had not been there yesterday.",
+    "On the last night of the carnival, one of the carousel horses was missing.",
+    "The dragon was, regrettably, the size of a teacup, and absolutely furious about it.",
+    "Every Thursday at 3:14 a.m., the diner on Route 9 served exactly one customer.",
+    "The map of the town showed a street that nobody could remember walking down.",
+    "Grandmother's houseplant had started giving advice, and worse, it was good advice.",
+    "In our town it rains memories every spring, and this year I caught one of yours.",
+    "The heist was planned perfectly, except that no one had told the moon."
+  ];
+  const PROMPTS = [
+    "Introduce someone new — friend or problem, you decide.",
+    "Someone tells a lie. Don't tell us it's a lie.",
+    "Describe what it smells like, right now, in the story.",
+    "Something small goes missing.",
+    "Let two characters disagree about what to do next.",
+    "Raise the stakes. Make it matter more.",
+    "A door, a gate, or a threshold. Someone crosses it.",
+    "Give an object a history it shouldn't have.",
+    "Someone laughs at exactly the wrong moment.",
+    "The weather changes, and it means something.",
+    "Write a line of dialogue someone will regret.",
+    "A sound nobody can explain.",
+    "Make it funnier.",
+    "Make it worse.",
+    "A quiet moment. Let them breathe.",
+    "Someone makes a promise.",
+    "A promise gets broken — maybe the same one.",
+    "Skip ahead in time. How far is up to you.",
+    "Zoom in on one tiny detail and make it important.",
+    "Zoom out. Show us how big this really is.",
+    "Someone arrives who was mentioned earlier.",
+    "Someone leaves without saying why.",
+    "What's in their pocket? It matters now.",
+    "An act of unexpected kindness.",
+    "The plan changes.",
+    "A secret is revealed — but only to the reader.",
+    "Bring back something from earlier in the story.",
+    "Give something a name. Names have power.",
+    "Someone is braver than they thought they were.",
+    "Someone is wrong, confidently.",
+    "Describe what it tastes like — the air, the food, the fear.",
+    "An animal has an opinion.",
+    "Interrupt whatever is happening.",
+    "The light does something strange.",
+    "Someone almost says it, and doesn't.",
+    "Say it. Whatever's been held back — say it."
+  ];
+  const ENDING_PROMPT = "Bring it home — write a closing line for the story.";
+  const INK = 320;
+
+  /* ================= state ================= */
+  let mode = null;    // 'free' | 'tale'
+  let state = null;   // freeform: { players, turn, totalTurns, seed, entries[], used[], nextPrompt, phase }
+  let tale = null;    // loaded tale object { meta, beats }
+  let tstate = null;  // tale: { beat, phase 'write'|'fate'|'done', pending, marks[], record[], players[2], castPlayer[2] }
+  let net = null;     // { role: 'host'|'guest', conn, myIndex }
+  const embeddedTales = []; // all <script class="embedded-tale"> blocks, parsed
+  let customTale = null;    // last tale loaded via "Load a story file…", if any
+  let selSeed = 0;
+  const $ = id => document.getElementById(id);
+  const SAVE = 'campfire-save';
+  const TSAVE = 'campfire-tale-save';
+  const LIB = 'campfire-library';
+
+  const lsGet = (k, f) => { try { return JSON.parse(localStorage.getItem(k)) ?? f; } catch { return f; } };
+  function toast(msg, ms) {
+    const t = $('toast');
+    t.textContent = msg; t.style.display = 'block';
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => t.style.display = 'none', ms || 2600);
+  }
+
+  /* ================= tale: validation ================= */
+  function validateTale(t) {
+    const errs = [];
+    if (!t || typeof t !== 'object') return ['Not a JSON object.'];
+    if (!t.meta || !t.meta.id) errs.push('Missing meta.id');
+    if (!t.meta || !t.meta.title) errs.push('Missing meta.title');
+    if (!t.meta || !Array.isArray(t.meta.roles) || t.meta.roles.length !== 2) errs.push('meta.roles must list exactly 2 roles');
+    if (!t.meta || !t.meta.start) errs.push('Missing meta.start');
+    if (!t.beats || typeof t.beats !== 'object') { errs.push('Missing beats'); return errs; }
+    if (t.meta && t.meta.start && !t.beats[t.meta.start]) errs.push('Start beat not found');
+    for (const [id, b] of Object.entries(t.beats)) {
+      if (typeof b.scene !== 'string') errs.push('Beat "' + id + '": missing scene');
+      if (b.ending) continue;
+      if (b.role !== 0 && b.role !== 1) errs.push('Beat "' + id + '": role must be 0 or 1');
+      if (!b.prompt) errs.push('Beat "' + id + '": missing prompt');
+      if (!Array.isArray(b.fates) || !b.fates.length) errs.push('Beat "' + id + '": needs fates');
+      else for (const f of b.fates) {
+        if (!f.text) errs.push('Beat "' + id + '": fate missing text');
+        if (!f.goto || !t.beats[f.goto]) errs.push('Beat "' + id + '": fate goto invalid');
+      }
+    }
+    return errs;
+  }
+
+  function loadTaleObject(obj) {
+    const errs = validateTale(obj);
+    if (errs.length) {
+      toast('Story has errors: ' + errs[0] + (errs.length > 1 ? ' (+' + (errs.length - 1) + ' more — see console)' : ''), 5000);
+      console.error('Tale validation errors:', errs);
+      return false;
+    }
+    tale = obj;
+    syncTaleSelectToCurrent();
+    toast('Loaded “' + tale.meta.title + '”');
+    return true;
+  }
+
+  function populateTaleSelect() {
+    const sel = $('taleSelect');
+    sel.innerHTML = '';
+    embeddedTales.forEach((t, i) => {
+      const o = document.createElement('option');
+      o.value = 'embedded:' + i;
+      o.textContent = '📖 ' + t.meta.title;
+      sel.appendChild(o);
+    });
+  }
+
+  function syncTaleSelectToCurrent() {
+    if (!tale) return;
+    const sel = $('taleSelect');
+    const idx = embeddedTales.findIndex(t => t.meta.id === tale.meta.id);
+    if (idx !== -1) { sel.value = 'embedded:' + idx; return; }
+    let opt = sel.querySelector('option[value="custom"]');
+    if (!opt) { opt = document.createElement('option'); opt.value = 'custom'; sel.appendChild(opt); }
+    opt.textContent = '📖 ' + tale.meta.title + ' (loaded)';
+    sel.value = 'custom';
+  }
+
+  /* ================= tale: game core ================= */
+  function newTale(players, castPlayer) {
+    mode = 'tale';
+    tstate = {
+      beat: tale.meta.start,
+      phase: 'write',
+      pending: null,
+      marks: [],
+      record: [],
+      players,
+      castPlayer
+    };
+    saveTale();
+    showGame();
+    render();
+  }
+  const curBeat = () => tale.beats[tstate.beat];
+  const writerIdx = () => tstate.castPlayer[curBeat().role];
+  const fateIdx = () => 1 - writerIdx();
+  const roleName = r => tale.meta.roles[r];
+
+  function taleWrite(text, fromRemote) {
+    text = (text || '').trim().slice(0, INK + 80);
+    if (!text) { toast('Write something first — one sentence is plenty.'); return; }
+    if (tstate.phase !== 'write') return;
+    if (net && !fromRemote) {
+      if (writerIdx() !== net.myIndex) return;
+      if (net.role === 'guest') { net.conn.send({ t: 'tw', text, b: tstate.beat }); return; }
+    }
+    tstate.pending = text;
+    tstate.phase = 'fate';
+    $('entryText').value = '';
+    saveTale();
+    render();
+    if (net && net.role === 'host') taleBroadcast();
+    if (!net) openHandoff();
+  }
+
+  function availableFates() {
+    return curBeat().fates.filter(f =>
+      !f.requireAny || f.requireAny.some(m => tstate.marks.includes(m)));
+  }
+
+  function taleFate(fate, fromRemote) {
+    if (tstate.phase !== 'fate') return;
+    if (net && !fromRemote) {
+      if (fateIdx() !== net.myIndex) return;
+      if (net.role === 'guest') { net.conn.send({ t: 'tf', idx: curBeat().fates.indexOf(fate), b: tstate.beat }); return; }
+    }
+    const b = curBeat();
+    tstate.record.push({
+      b: tstate.beat,
+      w: tstate.players[writerIdx()],
+      text: tstate.pending,
+      f: fate.text,
+      fb: tstate.players[fateIdx()]
+    });
+    if (fate.mark && !tstate.marks.includes(fate.mark)) tstate.marks.push(fate.mark);
+    tstate.pending = null;
+    tstate.beat = fate.goto;
+    tstate.phase = tale.beats[fate.goto].ending ? 'done' : 'write';
+    saveTale();
+    render();
+    if (net && net.role === 'host') taleBroadcast();
+    if (!net && tstate.phase !== 'done') openHandoff();
+    if (tstate.phase === 'done') localStorage.removeItem(TSAVE);
+  }
+
+  function saveTale() {
+    if (tstate.phase !== 'done')
+      localStorage.setItem(TSAVE, JSON.stringify({ tale, tstate }));
+  }
+
+  /* ================= freeform: game core ================= */
+  function dealPrompt() {
+    if (state.phase === 'ending') return ENDING_PROMPT;
+    let avail = PROMPTS.map((_, i) => i).filter(i => !state.used.includes(i));
+    if (!avail.length) { state.used = []; avail = PROMPTS.map((_, i) => i); }
+    const idx = avail[Math.floor(Math.random() * avail.length)];
+    state.used.push(idx);
+    return PROMPTS[idx];
+  }
+
+  function newGame(players, first, totalTurns, seedText) {
+    mode = 'free';
+    state = {
+      v: 1, players, turn: first, totalTurns,
+      seed: seedText, entries: [], used: [],
+      phase: 'play', nextPrompt: null
+    };
+    state.nextPrompt = dealPrompt();
+    saveGame();
+    showGame();
+    render();
+  }
+
+  function commitEntry(text, fromRemote) {
+    text = (text || '').trim().slice(0, INK + 80);
+    if (!text) { toast('Write something first — one sentence is plenty.'); return; }
+    if (state.phase === 'done') return;
+    if (net && !fromRemote) {
+      if (state.turn !== net.myIndex) return;
+      if (net.role === 'guest') { net.conn.send({ t: 'entry', text, n: state.entries.length }); return; }
+    }
+    state.entries.push({ p: state.players[state.turn], text, prompt: state.nextPrompt, e: state.phase === 'ending' ? 1 : 0 });
+    state.turn = 1 - state.turn;
+    const regular = state.entries.filter(en => !en.e).length;
+    const endings = state.entries.filter(en => en.e).length;
+    if (state.phase === 'play' && regular >= state.totalTurns) state.phase = 'ending';
+    if (state.phase === 'ending' && endings >= 2) state.phase = 'done';
+    state.nextPrompt = state.phase === 'done' ? null : dealPrompt();
+    $('entryText').value = '';
+    saveGame();
+    render();
+    if (net && net.role === 'host') netBroadcast();
+    if (!net && state.phase !== 'done') openHandoff();
+    if (state.phase === 'done') { localStorage.removeItem(SAVE); if (!net) closeModal(); }
+  }
+
+  function saveGame() { if (state.phase !== 'done') localStorage.setItem(SAVE, JSON.stringify(state)); }
+
+  /* ================= rendering ================= */
+  function showTitle() {
+    $('titleScreen').style.display = 'block';
+    $('gameScreen').style.display = 'none';
+    $('btnSend').style.display = 'none';
+    $('btnContinue').style.display = lsGet(SAVE, null) ? 'block' : 'none';
+    const ts = lsGet(TSAVE, null);
+    $('btnTaleContinue').style.display = ts ? 'block' : 'none';
+    if (ts) $('btnTaleContinue').textContent = 'Continue: ' + ts.tale.meta.title;
+    renderLibrary();
+  }
+  function showGame() {
+    $('titleScreen').style.display = 'none';
+    $('gameScreen').style.display = 'block';
+  }
+
+  function render() {
+    if (mode === 'tale') renderTale();
+    else renderFree();
+  }
+
+  function mkEl(cls, text) {
+    const d = document.createElement('div');
+    d.className = cls;
+    if (text != null) d.textContent = text;
+    return d;
+  }
+
+  function mkIcon(iconId) {
+    if (!iconId || !document.getElementById('icon-' + iconId)) return null;
+    const wrap = document.createElement('div');
+    wrap.className = 'beat-icon-wrap';
+    wrap.innerHTML = '<svg class="beat-icon"><use href="#icon-' + iconId + '"/></svg>';
+    return wrap;
+  }
+
+  /* ---------- tale rendering ---------- */
+  function renderTale() {
+    const b = curBeat();
+    const done = tstate.phase === 'done';
+
+    $('progLeft').textContent = tale.meta.title;
+    $('progRight').textContent = roleName(0) + ': ' + tstate.players[tstate.castPlayer[0]] +
+      ' · ' + roleName(1) + ': ' + tstate.players[tstate.castPlayer[1]];
+
+    // history + current scene
+    const box = $('storyScroll');
+    box.innerHTML = '';
+    tstate.record.forEach(r => {
+      const icon = mkIcon(tale.beats[r.b].icon);
+      if (icon) box.appendChild(icon);
+      box.appendChild(mkEl('entry past-scene', tale.beats[r.b].scene));
+      const e1 = mkEl('entry a');
+      const w1 = mkEl('', null); w1.className = 'who'; w1.textContent = '✍ ' + r.w;
+      e1.appendChild(w1); e1.appendChild(document.createTextNode('“' + r.text + '”'));
+      box.appendChild(e1);
+      const e2 = mkEl('entry fate-line');
+      const w2 = mkEl('', null); w2.className = 'who'; w2.textContent = '⚖ fate, chosen by ' + r.fb;
+      e2.appendChild(w2); e2.appendChild(document.createTextNode(r.f));
+      box.appendChild(e2);
+    });
+    const curIcon = mkIcon(b.icon);
+    if (curIcon) box.appendChild(curIcon);
+    box.appendChild(mkEl('entry scene-now', b.scene));
+
+    $('writeArea').style.display = 'none';
+    $('fateBox').style.display = 'none';
+    $('doneBox').style.display = 'none';
+    $('promptCard').style.display = 'none';
+    $('turnBar').style.display = 'none';
+    $('btnSend').style.display = (!net && !done) ? 'inline-block' : 'none';
+
+    if (done) {
+      $('doneBox').style.display = 'block';
+      $('marksRow').innerHTML = '';
+      if (tstate.marks.length) {
+        const m = $('marksRow');
+        m.appendChild(document.createTextNode('The Line remembers: '));
+        tstate.marks.forEach((mk, i) => {
+          const s = document.createElement('span');
+          s.className = 'mk';
+          s.textContent = mk + (i < tstate.marks.length - 1 ? ', ' : '');
+          m.appendChild(s);
+        });
+      }
+      if (!$('titleInput').value)
+        $('titleInput').value = tale.meta.title + ' — ' + tstate.players.join(' & ');
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+      return;
+    }
+
+    $('promptCard').style.display = 'block';
+    $('turnBar').style.display = 'block';
+    const wName = tstate.players[writerIdx()];
+    const fName = tstate.players[fateIdx()];
+
+    if (tstate.phase === 'write') {
+      $('cardLabel').textContent = 'Prompt → ' + roleName(b.role) + ' (' + wName + ')';
+      $('cardText').textContent = b.prompt;
+      const myTurn = !net || writerIdx() === net.myIndex;
+      $('turnBar').textContent = net
+        ? (myTurn ? '▶ Your turn, ' + wName + ' — write it in your own words.' : '⏳ ' + wName + ' is writing… it will appear live.')
+        : '✍ ' + wName + ' writes. (' + fName + ' — no peeking at your options.)';
+      $('writeArea').style.display = 'block';
+      $('entryText').disabled = !myTurn;
+      updateInk();
+    } else {
+      $('cardLabel').textContent = 'Fate → ' + fName;
+      $('cardText').textContent = 'How does the world answer?';
+      const myTurn = !net || fateIdx() === net.myIndex;
+      $('turnBar').textContent = net
+        ? (myTurn ? '▶ You are Fate this turn, ' + fName + '. Choose.' : '⏳ ' + fName + ' is deciding how the world answers…')
+        : '⚖ ' + fName + ' plays Fate. Choose what happens — no negotiating.';
+      $('fateBox').style.display = 'block';
+      $('fateWho').textContent = '✍ ' + wName + ' (' + roleName(b.role) + ') wrote:';
+      $('fateSaid').textContent = '“' + tstate.pending + '”';
+      const opts = $('fateOpts');
+      opts.innerHTML = '';
+      availableFates().forEach(f => {
+        const btn = document.createElement('button');
+        btn.className = 'fate-opt';
+        btn.textContent = f.text;
+        btn.disabled = !myTurn;
+        btn.addEventListener('click', () => taleFate(f));
+        opts.appendChild(btn);
+      });
+    }
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+  }
+
+  /* ---------- freeform rendering ---------- */
+  function renderFree() {
+    const regular = state.entries.filter(en => !en.e).length;
+    $('progLeft').textContent = state.phase === 'done' ? 'A finished story'
+      : state.phase === 'ending' ? 'Closing lines'
+      : 'Turn ' + (regular + 1) + ' of ' + state.totalTurns;
+    $('progRight').textContent = state.players[0] + ' & ' + state.players[1];
+
+    const box = $('storyScroll');
+    box.innerHTML = '';
+    box.appendChild(mkEl('entry seed', state.seed));
+    state.entries.forEach(en => {
+      const d = mkEl('entry ' + (en.p === state.players[0] ? 'a' : 'b') + (en.e ? ' ending-line' : ''));
+      const w = mkEl('', null); w.className = 'who'; w.textContent = en.p;
+      const t = document.createElement('span');
+      t.textContent = en.text;
+      d.appendChild(w); d.appendChild(t);
+      box.appendChild(d);
+    });
+
+    const done = state.phase === 'done';
+    $('promptCard').style.display = done ? 'none' : 'block';
+    $('writeArea').style.display = done ? 'none' : 'block';
+    $('fateBox').style.display = 'none';
+    $('turnBar').style.display = done ? 'none' : 'block';
+    $('doneBox').style.display = done ? 'block' : 'none';
+    $('marksRow').innerHTML = '';
+    $('btnSend').style.display = (!net && !done) ? 'inline-block' : 'none';
+
+    if (done) {
+      if (!$('titleInput').value) {
+        const words = state.seed.split(/\s+/).slice(0, 5).join(' ');
+        $('titleInput').value = words.replace(/[.,!?]+$/, '') + '…';
+      }
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+      return;
+    }
+
+    $('cardLabel').textContent = state.phase === 'ending' ? 'The Ending' : 'Prompt';
+    $('cardText').textContent = state.nextPrompt;
+    const myTurn = !net || state.turn === net.myIndex;
+    const who = state.players[state.turn];
+    $('turnBar').textContent = net
+      ? (myTurn ? '▶ Your turn, ' + who + '.' : '⏳ ' + who + ' is writing… their lines will appear live.')
+      : '✒ ' + who + ' writes next.';
+    $('entryText').disabled = !myTurn;
+    updateInk();
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+  }
+
+  function updateInk() {
+    const left = INK - $('entryText').value.length;
+    const el = $('inkLeft');
+    el.textContent = left >= 0 ? left + ' ink left' : 'over by ' + (-left) + ' — trim a little';
+    el.className = left < 40 ? 'low' : '';
+    $('btnCommit').disabled = $('entryText').disabled || left < 0 || !$('entryText').value.trim();
+  }
+
+  /* ================= library ================= */
+  function renderLibrary() {
+    const lib = lsGet(LIB, []);
+    $('libHeading').textContent = lib.length ? 'Finished stories — ' + lib.length : 'Finished stories';
+    const list = $('libList');
+    list.innerHTML = '';
+    if (!lib.length) {
+      list.innerHTML = '<div class="lib-item"><span class="meta">None yet. The first one is waiting to be told.</span></div>';
+      return;
+    }
+    lib.forEach((st, i) => {
+      const d = document.createElement('div');
+      d.className = 'lib-item';
+      const t = document.createElement('span');
+      t.className = 't';
+      t.textContent = '📖 ' + st.title;
+      t.onclick = () => openRead(st);
+      const m = document.createElement('span');
+      m.className = 'meta';
+      m.textContent = st.players.join(' & ') + ' · ' + st.date;
+      const x = document.createElement('span');
+      x.className = 'x';
+      x.textContent = '✕';
+      x.title = 'Delete';
+      x.onclick = () => {
+        if (!confirm('Delete “' + st.title + '” forever?')) return;
+        const l2 = lsGet(LIB, []); l2.splice(i, 1);
+        localStorage.setItem(LIB, JSON.stringify(l2));
+        renderLibrary();
+      };
+      d.appendChild(t); d.appendChild(m); d.appendChild(x);
+      list.appendChild(d);
+    });
+  }
+
+  function fullText(st) {
+    let out = st.title + '\nby ' + st.players.join(' & ') + ' — ' + st.date + '\n\n' + st.seed + '\n\n';
+    for (const en of st.entries) out += en.text + '\n\n';
+    return out.trim() + '\n';
+  }
+  function download(st) {
+    const blob = new Blob([fullText(st)], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = st.title.replace(/[^\w\s-]/g, '').trim().replace(/\s+/g, '-').toLowerCase() + '.txt';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+  let readSt = null;
+  function openRead(st) {
+    readSt = st;
+    $('readTitle').textContent = '📖 ' + st.title;
+    $('readMeta').textContent = st.players.join(' & ') + ' · ' + st.date;
+    $('readBody').textContent = st.seed + '\n\n' + st.entries.map(en => en.text).join('\n\n');
+    openModal('readModal');
+  }
+
+  function compileCurrent() {
+    const title = $('titleInput').value.trim() || 'Untitled, but ours';
+    if (mode === 'tale') {
+      const entries = [];
+      tstate.record.forEach(r => {
+        entries.push({ text: tale.beats[r.b].scene });
+        entries.push({ text: '✍ ' + r.w + ': “' + r.text + '”' });
+        entries.push({ text: '⚖ ' + r.fb + ' chose: ' + r.f });
+      });
+      entries.push({ text: tale.beats[tstate.beat].scene });
+      if (tstate.marks.length) entries.push({ text: '(The Line remembers: ' + tstate.marks.join(', ') + ')' });
+      return { title, players: tstate.players, date: new Date().toLocaleDateString(), seed: tale.meta.title, entries };
+    }
+    return { title, players: state.players, date: new Date().toLocaleDateString(), seed: state.seed, entries: state.entries };
+  }
+  function saveToLibrary() {
+    const lib = lsGet(LIB, []);
+    lib.unshift(compileCurrent());
+    localStorage.setItem(LIB, JSON.stringify(lib));
+    toast('Saved. 📖 It\'s in your library now.');
+  }
+
+  /* ================= codes (async handoff) ================= */
+  const b64uEncode = bytes => btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  function b64uDecode(str) {
+    str = str.replace(/-/g, '+').replace(/_/g, '/');
+    while (str.length % 4) str += '=';
+    return Uint8Array.from(atob(str), c => c.charCodeAt(0));
+  }
+  async function packJson(json) {
+    if (typeof CompressionStream !== 'undefined') {
+      try {
+        const stream = new Blob([json]).stream().pipeThrough(new CompressionStream('deflate-raw'));
+        return 'C' + b64uEncode(new Uint8Array(await new Response(stream).arrayBuffer()));
+      } catch (e) { /* fall through */ }
+    }
+    return 'P' + b64uEncode(new TextEncoder().encode(json));
+  }
+  async function encodeState() {
+    return packJson(JSON.stringify(mode === 'tale' ? { m: 'tale', tale, tstate } : state));
+  }
+  async function decodeState(code) {
+    code = code.trim();
+    const h = code.indexOf('#');
+    if (h !== -1) code = code.slice(h + 1);
+    const bytes = b64uDecode(code.slice(1));
+    let json;
+    if (code[0] === 'C') {
+      const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+      json = await new Response(stream).text();
+    } else if (code[0] === 'P') {
+      json = new TextDecoder().decode(bytes);
+    } else throw new Error('Unrecognized code');
+    return JSON.parse(json);
+  }
+  function resumeFromObject(obj) {
+    if (obj && obj.m === 'tale') {
+      if (!validateTale(obj.tale).length) tale = obj.tale;
+      else { toast('Code contains an invalid story.', 5000); return; }
+      tstate = obj.tstate;
+      mode = 'tale';
+      syncTaleSelectToCurrent();
+      showGame();
+      render();
+      if (tstate.phase === 'fate') toast(tstate.players[writerIdx()] + ' wrote — you are Fate now.', 4000);
+      else if (tstate.record.length) {
+        const r = tstate.record[tstate.record.length - 1];
+        toast(r.fb + ' chose the consequence — your turn to write.', 4000);
+      }
+    } else {
+      state = obj;
+      mode = 'free';
+      showGame();
+      render();
+      const last = state.entries[state.entries.length - 1];
+      if (last) toast(last.p + ' wrote: “' + last.text.slice(0, 80) + (last.text.length > 80 ? '…' : '') + '”', 4000);
+    }
+  }
+  async function openHandoff() {
+    const code = await encodeState();
+    const nextName = mode === 'tale'
+      ? tstate.players[tstate.phase === 'fate' ? fateIdx() : writerIdx()]
+      : state.players[state.turn];
+    $('hoWho').textContent = nextName;
+    if (location.protocol.startsWith('http')) {
+      $('hoCode').value = location.href.split('#')[0] + '#' + code;
+      $('hoHint').textContent = 'They just open the link.';
+    } else {
+      $('hoCode').value = code;
+      $('hoHint').textContent = 'They paste it under "Have a code?" on their copy of Campfire.';
+    }
+    openModal('handoffModal');
+  }
+
+  /* ================= live mode (PeerJS) ================= */
+  function loadPeerJs(cb) {
+    if (window.Peer) return cb();
+    const s = document.createElement('script');
+    s.src = 'https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js';
+    s.onload = cb;
+    s.onerror = () => { $('olStatus').textContent = 'Could not load the connection library — check your internet.'; };
+    document.head.appendChild(s);
+  }
+  function netBroadcast() {
+    if (net && net.conn) net.conn.send({ t: 'st', state });
+  }
+  function taleBroadcast() {
+    if (net && net.conn) net.conn.send({ t: 'tst', tstate });
+  }
+
+  function startHostSession(conn) {           // freeform host
+    net = { role: 'host', conn, myIndex: 0 };
+    conn.on('data', msg => {
+      if (!msg || typeof msg !== 'object') return;
+      if (msg.t === 'entry' && state && state.turn === 1 && msg.n === state.entries.length) {
+        commitEntry(String(msg.text || ''), true);
+        toast(state.players[1] + ' added their lines.', 3000);
+      }
+    });
+    conn.on('close', () => toast('Connection lost — your partner left or dropped.', 5000));
+    conn.send({ t: 'init', state });
+    if (state) render();   // re-render with turn locking active
+  }
+
+  function startTaleHostSession(conn) {       // tale host
+    net = { role: 'host', conn, myIndex: 0 };
+    conn.on('data', msg => {
+      if (!msg || typeof msg !== 'object') return;
+      if (msg.t === 'tw' && tstate && tstate.phase === 'write' && writerIdx() === 1 && msg.b === tstate.beat) {
+        taleWrite(String(msg.text || ''), true);
+        toast(tstate.players[1] + ' wrote their part.', 3000);
+      }
+      if (msg.t === 'tf' && tstate && tstate.phase === 'fate' && fateIdx() === 1 && msg.b === tstate.beat) {
+        const f = curBeat().fates[msg.idx];
+        if (f && availableFates().includes(f)) {
+          taleFate(f, true);
+          toast(tstate.players[1] + ' chose the consequence.', 3000);
+        }
+      }
+    });
+    conn.on('close', () => toast('Connection lost — your partner left or dropped.', 5000));
+    conn.send({ t: 'tinit', tale, tstate });
+    if (tstate) render();   // re-render with turn locking active
+  }
+
+  function startGuestSession(conn, myName) {  // guest for both modes
+    net = { role: 'guest', conn, myIndex: 1 };
+    conn.on('data', msg => {
+      if (!msg || typeof msg !== 'object') return;
+      if (msg.t === 'init' || msg.t === 'st') {
+        const prevCount = state ? state.entries.length : -1;
+        mode = 'free';
+        state = msg.state;
+        if (state.entries.length > prevCount && state.entries.length) {
+          const last = state.entries[state.entries.length - 1];
+          if (last.p !== state.players[1]) toast(last.p + ' wrote: “' + last.text.slice(0, 80) + (last.text.length > 80 ? '…' : '') + '”', 3500);
+        }
+        closeModal(); showGame(); render();
+      } else if (msg.t === 'tinit' || msg.t === 'tst') {
+        mode = 'tale';
+        if (msg.tale) { tale = msg.tale; syncTaleSelectToCurrent(); }
+        const prevPhase = tstate ? tstate.phase : null;
+        tstate = msg.tstate;
+        if (prevPhase && tstate.phase === 'fate' && prevPhase === 'write' && fateIdx() === 1)
+          toast(tstate.players[writerIdx()] + ' wrote — you are Fate now.', 3500);
+        if (prevPhase === 'fate' && tstate.record.length) {
+          const r = tstate.record[tstate.record.length - 1];
+          if (r.fb !== tstate.players[1]) toast(r.fb + ' chose the consequence.', 3500);
+        }
+        closeModal(); showGame(); render();
+      }
+    });
+    conn.on('close', () => toast('Connection lost — ask them to host again.', 5000));
+    conn.send({ t: 'hi', name: myName });
+  }
+
+  /* ================= modals ================= */
+  function openModal(id) {
+    $('modalBack').style.display = 'flex';
+    for (const m of document.querySelectorAll('.modal')) m.style.display = 'none';
+    $(id).style.display = 'block';
+  }
+  function closeModal() { $('modalBack').style.display = 'none'; }
+
+  /* ================= setup UI ================= */
+  function renderSeeds() {
+    const list = $('seedList');
+    list.innerHTML = '';
+    SEEDS.forEach((s, i) => {
+      const d = document.createElement('div');
+      d.className = 'seed-pick' + (i === selSeed ? ' sel' : '');
+      d.textContent = s;
+      d.onclick = () => { selSeed = i; $('suSeedCustom').value = ''; renderSeeds(); };
+      list.appendChild(d);
+    });
+  }
+  let pendingHostStart = null;        // freeform live: start on setup submit
+  let pendingTaleHostStart = null;    // tale live: start on setup submit
+
+  /* ---- freeform setup ---- */
+  $('btnNew').addEventListener('click', () => { pendingHostStart = null; renderSeeds(); openModal('setupModal'); });
+  $('suCancel').addEventListener('click', closeModal);
+  $('suStart').addEventListener('click', () => {
+    const a = $('suNameA').value.trim() || 'Player 1';
+    const b = $('suNameB').value.trim() || 'Player 2';
+    const first = parseInt($('suFirst').value, 10);
+    const len = parseInt($('suLen').value, 10);
+    const seed = $('suSeedCustom').value.trim() || SEEDS[selSeed];
+    closeModal();
+    localStorage.removeItem(SAVE);
+    if (pendingHostStart) pendingHostStart({ a, first, len, seed });
+    else newGame([a, b], first, len, seed);
+  });
+  $('btnContinue').addEventListener('click', () => {
+    const s = lsGet(SAVE, null);
+    if (!s) return;
+    mode = 'free'; state = s;
+    showGame(); render();
+  });
+
+  /* ---- tale setup ---- */
+  function openTaleSetup(liveGuestName) {
+    if (!tale) return;
+    $('tsTitle').textContent = '📖 ' + tale.meta.title;
+    $('tsBlurb').textContent = tale.meta.blurb || '';
+    $('tsRoleLabel').textContent = 'Who plays ' + tale.meta.roles[0] + '? (the other is ' + tale.meta.roles[1] + ')';
+    if (liveGuestName) {
+      $('tsNameB').value = liveGuestName;
+      $('tsNameB').disabled = true;
+    } else {
+      $('tsNameB').disabled = false;
+    }
+    openModal('taleSetupModal');
+  }
+  $('btnTale').addEventListener('click', () => { pendingTaleHostStart = null; openTaleSetup(null); });
+  $('tsCancel').addEventListener('click', closeModal);
+  $('tsStart').addEventListener('click', () => {
+    const a = $('tsNameA').value.trim() || 'Player 1';
+    const b = $('tsNameB').value.trim() || 'Player 2';
+    const roleSel = parseInt($('tsRole').value, 10);   // 0: me plays role0
+    const castPlayer = roleSel === 0 ? [0, 1] : [1, 0];
+    closeModal();
+    localStorage.removeItem(TSAVE);
+    if (pendingTaleHostStart) pendingTaleHostStart({ a, castPlayer });
+    else newTale([a, b], castPlayer);
+  });
+  $('btnTaleContinue').addEventListener('click', () => {
+    const s = lsGet(TSAVE, null);
+    if (!s) return;
+    tale = s.tale; tstate = s.tstate; mode = 'tale';
+    showGame(); render();
+  });
+  $('btnTaleLoad').addEventListener('click', () => $('taleFileInput').click());
+  $('taleFileInput').addEventListener('change', e => {
+    const f = e.target.files[0];
+    if (!f) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const obj = JSON.parse(reader.result);
+        if (loadTaleObject(obj)) customTale = obj;
+      }
+      catch (err) { toast('Could not parse JSON: ' + err.message, 5000); }
+    };
+    reader.readAsText(f);
+    e.target.value = '';
+  });
+  $('taleSelect').addEventListener('change', () => {
+    const v = $('taleSelect').value;
+    if (v === 'custom') { if (customTale) loadTaleObject(customTale); return; }
+    const idx = Number(v.split(':')[1]);
+    if (embeddedTales[idx]) loadTaleObject(embeddedTales[idx]);
+  });
+
+  /* ---- shared game UI ---- */
+  $('btnCommit').addEventListener('click', () => {
+    if (mode === 'tale') taleWrite($('entryText').value);
+    else commitEntry($('entryText').value);
+  });
+  $('entryText').addEventListener('input', updateInk);
+  $('btnTitle').addEventListener('click', showTitle);
+  $('btnSend').addEventListener('click', () => { if (mode) openHandoff(); });
+  $('hoClose').addEventListener('click', closeModal);
+  $('btnPassDev').addEventListener('click', () => {
+    closeModal();
+    const who = mode === 'tale'
+      ? tstate.players[tstate.phase === 'fate' ? fateIdx() : writerIdx()]
+      : state.players[state.turn];
+    toast('Device passed — ' + who + ' goes next!');
+  });
+  $('btnCopy').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText($('hoCode').value); toast('Copied! 💌'); }
+    catch { $('hoCode').select(); document.execCommand('copy'); toast('Copied!'); }
+  });
+
+  $('btnResume').addEventListener('click', async () => {
+    const v = $('resumeInput').value.trim();
+    if (!v) return;
+    try {
+      const obj = await decodeState(v);
+      $('resumeInput').value = '';
+      resumeFromObject(obj);
+    } catch (e) { toast('Could not read that code: ' + e.message, 5000); }
+  });
+
+  $('btnSave').addEventListener('click', saveToLibrary);
+  $('btnExport').addEventListener('click', () => download(compileCurrent()));
+  $('btnAgain').addEventListener('click', () => { $('titleInput').value = ''; showTitle(); });
+  $('readClose').addEventListener('click', closeModal);
+  $('readExport').addEventListener('click', () => { if (readSt) download(readSt); });
+
+  /* ---- live room UI ---- */
+  function makeCode() {
+    const a = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let c = '';
+    for (let i = 0; i < 5; i++) c += a[Math.floor(Math.random() * a.length)];
+    return c;
+  }
+  function hostRoom(onGuestHello) {
+    $('olHostFields').style.display = 'block';
+    $('olJoinFields').style.display = 'none';
+    $('olCode').textContent = '·····';
+    $('olStatus').textContent = 'Opening room…';
+    openModal('onlineModal');
+    loadPeerJs(() => {
+      const code = makeCode();
+      const peer = new Peer('campfire-' + code);
+      peer.on('open', () => {
+        $('olCode').textContent = code;
+        $('olStatus').textContent = 'Room open — waiting for your partner…';
+      });
+      peer.on('connection', conn => {
+        conn.on('data', msg => {
+          if (msg && msg.t === 'hi' && !net) onGuestHello(conn, msg.name || 'Partner');
+        });
+      });
+      peer.on('error', e => { $('olStatus').textContent = 'Connection error (' + e.type + '). Try again.'; });
+    });
+  }
+  $('olClose').addEventListener('click', closeModal);
+
+  $('btnHost').addEventListener('click', () => {
+    $('olBlurb').textContent = 'Freeform story, live. Share the code; when they join, you set up the story together.';
+    hostRoom((conn, guestName) => {
+      $('olStatus').textContent = guestName + ' joined! Set up the story…';
+      pendingHostStart = ({ a, first, len, seed }) => {
+        newGame([a, guestName], first, len, seed);
+        startHostSession(conn);
+      };
+      renderSeeds();
+      $('suNameB').value = guestName;
+      $('suNameB').disabled = true;
+      openModal('setupModal');
+    });
+  });
+
+  $('btnTaleHost').addEventListener('click', () => {
+    if (!tale) return;
+    $('olBlurb').textContent = '“' + tale.meta.title + '”, live. Share the code; when they join, you cast the roles.';
+    hostRoom((conn, guestName) => {
+      $('olStatus').textContent = guestName + ' joined! Cast the roles…';
+      pendingTaleHostStart = ({ a, castPlayer }) => {
+        newTale([a, guestName], castPlayer);
+        startTaleHostSession(conn);
+      };
+      openTaleSetup(guestName);
+    });
+  });
+
+  $('btnJoin').addEventListener('click', () => {
+    $('olBlurb').textContent = 'Enter your name and the code your partner read out. Works for both story and freeform rooms.';
+    $('olHostFields').style.display = 'none';
+    $('olJoinFields').style.display = 'block';
+    $('olStatus').textContent = '';
+    openModal('onlineModal');
+  });
+  $('olJoinGo').addEventListener('click', () => {
+    const myName = $('olName').value.trim() || 'Player 2';
+    const code = $('olJoinCode').value.trim().toUpperCase();
+    if (!code) { $('olStatus').textContent = 'Enter the room code.'; return; }
+    $('olStatus').textContent = 'Connecting…';
+    loadPeerJs(() => {
+      const peer = new Peer();
+      peer.on('open', () => {
+        const conn = peer.connect('campfire-' + code, { reliable: true });
+        conn.on('open', () => {
+          $('olStatus').textContent = 'Connected! Waiting for your partner to set things up…';
+          startGuestSession(conn, myName);
+        });
+        conn.on('error', () => { $('olStatus').textContent = 'Could not reach that room.'; });
+      });
+      peer.on('error', e => { $('olStatus').textContent = 'Connection error (' + e.type + '). Check the code.'; });
+    });
+  });
+
+  /* ---- boot ---- */
+  window.CAMPFIRE = {
+    encodeState, decodeState,
+    loadTale: loadTaleObject,
+    _newGame: newGame, _newTale: newTale,
+    _startHostSession: startHostSession,
+    _startTaleHostSession: startTaleHostSession,
+    _startGuestSession: startGuestSession
+  };
+  async function boot() {
+    document.querySelectorAll('script.embedded-tale').forEach(el => {
+      try { embeddedTales.push(JSON.parse(el.textContent)); }
+      catch (e) { console.error('Bad embedded tale "' + el.id + '":', e); }
+    });
+    populateTaleSelect();
+    if (embeddedTales.length) loadTaleObject(embeddedTales[0]);
+    if (location.hash.length > 1) {
+      try {
+        const obj = await decodeState(location.hash.slice(1));
+        history.replaceState(null, '', location.pathname + location.search);
+        resumeFromObject(obj);
+        return;
+      } catch (e) { console.error(e); }
+    }
+    showTitle();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+</script>
+</body>
+</html>

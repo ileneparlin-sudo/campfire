@@ -1,0 +1,205 @@
+{
+  "meta": {
+    "id": "the-perennial",
+    "title": "The Perennial",
+    "author": "A Dilemma in Six Watches",
+    "blurb": "A colony ship. Two hundred sleepers. Two watch officers who alternate shifts and never meet — except in the ship's log, and in the weight of each other's choices. There are no right answers aboard the Perennial. There is no best ending. There is only what you can live with — and who you become to each other on the way.",
+    "start": "d1",
+    "stats": { "power": 5, "sleepers": 200, "years-to-go": 40 },
+    "items": [],
+    "achievements": {
+      "we-met-once": { "name": "We Met Once", "desc": "Spend power you couldn't spare to face something together" },
+      "no-one-left": { "name": "No One Left Behind", "desc": "Turn the ship for strangers" },
+      "quiet-mercy": { "name": "The Quiet Mercy", "desc": "Decide what the other watch didn't need to know", "secret": true }
+    }
+  },
+  "scenes": {
+    "d1": {
+      "text": "— FIRST WATCH —\n\nYear eleven. The strike comes through the forward shield like a thrown stone through cathedral glass: a rock the size of a fist, moving at a fraction of forever.\n\nThe Perennial survives. Her power grid does not — not whole. The numbers on your board are simple and merciless: there is no longer enough output to keep everything warm. Cryo Bay C, fourteen sleepers. The seed vault, every crop the colony will ever plant. Or the reserve fuel, burned now to bridge the gap — fuel meant for the landing.\n\nThe other watch sleeps. This one is yours alone.",
+      "mood": "danger",
+      "choices": [
+        { "text": "Cut heat to Cryo Bay C — fourteen pods go cold, the rest of the ship lives easy", "goto": "c1-bay" },
+        { "text": "Power down the seed vault — protect every sleeper, gamble the harvest", "goto": "c1-vault" },
+        { "text": "Burn the landing reserves — save both, and owe the future the difference", "goto": "c1-fuel", "effects": { "stats": { "power": -2 } } }
+      ]
+    },
+    "c1-bay": {
+      "text": "— SECOND WATCH —\n\nYou wake to a quiet ship and a log entry your partner-in-shifts wrote four times before sending, the deletions still ghosted in the file history.\n\n\"Bay C is dark. I sat with them while it cooled. I read their manifests — I thought someone should know who they were, not just how many. The list is on your desk. I'm sorry to hand you a lighter ship.\"\n\nFourteen names, printed, in a drawer. You memorize them before your shift begins. It seems like the least the living can do.",
+      "mood": "danger",
+      "onEnter": { "stats": { "sleepers": -14 }, "gainItems": ["fourteen-names"] },
+      "choices": [
+        { "text": "Begin your watch, carrying the list", "goto": "d2" }
+      ]
+    },
+    "c1-vault": {
+      "text": "— SECOND WATCH —\n\nYou wake to a quiet ship and a log entry: \"The vault went dark, not the pods. I couldn't price a person against a harvest. Run the viability numbers when you're up — maybe I've only half-doomed us.\"\n\nYou run them. Thirty percent of the seed stock will survive the cold dormancy — barley, two legumes, a stubborn potato. The orchards are gone. The colony will eat, but it will be generations before anyone tastes an apple.\n\nYou log back: \"Half-doomed is half-saved. We'll plant what's left twice as carefully.\"",
+      "mood": "mystery",
+      "onEnter": { "gainItems": ["thin-harvest"] },
+      "choices": [
+        { "text": "Begin your watch, already planning the planting", "goto": "d2" }
+      ]
+    },
+    "c1-fuel": {
+      "text": "— SECOND WATCH —\n\nYou wake to a quiet ship and the shortest log entry your counterpart has ever written:\n\n\"I couldn't choose. So I spent the only thing that was ours instead of theirs. Forgive me the math.\"\n\nYou check the math. The landing reserves are down to margins a flight instructor would fail a cadet for. Every sleeper warm, every seed viable, and a descent someday that will have to be flown perfectly on the first try.\n\nYou log back: \"The math forgives you. Practice your landings.\"",
+      "mood": "calm",
+      "choices": [
+        { "text": "Begin your watch, lighter and heavier at once", "goto": "d2" }
+      ]
+    },
+    "d2": {
+      "text": "— SECOND WATCH —\n\nYear seventeen. Pod 117 fails politely — no alarm, just a gentle chime and a woman sitting up in the frost, awake twenty-three years early.\n\nDr. Imani Voss, agronomist. The medbay is blunt: her pod is degraded, and a re-freeze carries real risk — she might not wake again at all. The alternative is arithmetic of a different kind: she lives the rest of the voyage awake. Alone, unless someone joins her. She is calm, asking intelligent questions, and watching your face for the answer you haven't given yet.",
+      "mood": "mystery",
+      "choices": [
+        { "text": "Tell her everything and let her choose her own odds", "goto": "c2-truth" },
+        { "text": "Wake her husband from Pod 118 — whatever she faces, she faces accompanied", "goto": "c2-couple", "effects": { "stats": { "power": -1 } } },
+        { "text": "Re-freeze her while she sleeps tonight — don't make her carry the choice", "roll": { "chance": 0.55, "perStat": { "power": 0.05 }, "success": "c2-sleeps", "failure": "c2-lost" } }
+      ]
+    },
+    "c2-truth": {
+      "text": "— FIRST WATCH —\n\nYou wake to find the hydroponics bay rearranged, improved, and occupied. Dr. Voss has been awake for your entire sleep shift — your counterpart's log explains: \"I told her the truth. She did the math herself and chose the years. She says a gardener with forty years and a greenhouse is not a tragedy, she's a head start.\"\n\nVoss looks up from a seedling tray. \"You must be the other one,\" she says. \"Your ship talks about you in its sleep. Mostly good things.\"\n\nThe Perennial has a crew of three now. It feels different. Warmer, in the ways no reactor measures.",
+      "mood": "calm",
+      "onEnter": { "gainItems": ["voss-awake"] },
+      "choices": [
+        { "text": "Welcome her properly, and begin your watch", "goto": "d3" }
+      ]
+    },
+    "c2-couple": {
+      "text": "— FIRST WATCH —\n\nYou wake to two voices in the galley — the first overheard conversation aboard the Perennial in seventeen years. Dr. Voss and her husband Tomas, arguing gently about whether barley can be coaxed into bread without a proper mill.\n\nThe log explains the spent power, then stops apologizing halfway through: \"I know what it cost. But she sat there doing the arithmetic of forty years alone, and I couldn't watch her finish it. They'll work for their passage. They already are.\"\n\nA crew of four. The power margin is thinner. The ship has never sounded so alive.",
+      "mood": "calm",
+      "onEnter": { "gainItems": ["voss-awake"] },
+      "choices": [
+        { "text": "Join them for the experiment they call breakfast, then begin your watch", "goto": "d3" }
+      ]
+    },
+    "c2-sleeps": {
+      "text": "— FIRST WATCH —\n\nThe log entry takes you two readings to absorb: \"Pod 117 failed. Dr. Imani Voss was awake for nine days. I re-froze her without asking — the medbay gave decent odds and I took them on her behalf. It worked. She's stable. She'll wake at orbit with the rest and never know she saw the middle of the voyage.\n\nI keep thinking: she'd either thank me or never forgive me, and I'll never find out which. Maybe you can carry that thought for a shift, because I'm tired of holding it alone.\"\n\nYou carry it. It's heavier than it looks.",
+      "mood": "mystery",
+      "onEnter": { "gainItems": ["unasked-question"] },
+      "choices": [
+        { "text": "Log a single line — \"You took the odds so she didn't have to. Sleep.\" — and begin your watch", "goto": "d3" }
+      ]
+    },
+    "c2-lost": {
+      "text": "— FIRST WATCH —\n\nThe log entry is timestamped 03:11, which means your counterpart wrote it in the worst hour of the ship's night.\n\n\"Pod 117 failed and woke Dr. Imani Voss. The medbay gave decent odds on a re-freeze. I took them without asking her — I thought I was sparing her the weight of choosing. The pod arrested during cooldown. She never woke. I keep replaying the moment I decided she didn't need to be asked.\n\nShe was writing a letter when I made the call. It's unfinished. I can't bring myself to read it, and I can't bring myself to delete it.\"\n\nYou read it. Someone should. It's addressed to everyone she was going to feed.",
+      "mood": "danger",
+      "onEnter": { "stats": { "sleepers": -1 }, "gainItems": ["her-letter"] },
+      "choices": [
+        { "text": "File the letter where the colony will someday find it, and begin your watch", "goto": "d3" }
+      ]
+    },
+    "d3": {
+      "text": "— FIRST WATCH —\n\nYear twenty-four. The message took eleven years to reach you, which means everything in it is already history.\n\nEarth's transmission is mostly static, then a voice, professional and shaking: \"...general broadcast to all colonial vessels. Do not reply. Conserve your bandwidth for each other now. You are no longer a backup. You are the—\" The signal ends there. Not fades. Ends.\n\nThe other watch wakes in forty days. The log cursor blinks, waiting to find out what kind of officer you are.",
+      "mood": "danger",
+      "choices": [
+        { "text": "Record it whole — every second, including the ending. They deserve the truth you got", "goto": "c3-truth", "effects": { "gainItems": ["whole-truth"] } },
+        { "text": "Log only: \"Earth has gone quiet. Nothing requires action.\" Spare them the voice", "goto": "c3-soft", "effects": { "award": ["quiet-mercy"], "gainItems": ["soft-log"] } },
+        { "text": "Spend the power to wake them now. Some transmissions shouldn't be heard alone", "goto": "c3-day", "effects": { "stats": { "power": -1 }, "award": ["we-met-once"], "gainItems": ["one-day"] } }
+      ]
+    },
+    "c3-truth": {
+      "text": "— SECOND WATCH —\n\nYou wake, you read the log, you listen to the transmission twice, and then you sit for a long time in the pilot's chair watching a star field that contains, somewhere behind you, a planet that stopped sending.\n\nThe last line of your counterpart's entry: \"I thought about softening it. You'd have done the same for me, maybe. But we are two people steering two hundred, and I don't want to steer you with a kindly edited sky. Here is the whole sky.\"\n\nYou log back one line: \"Thank you for the whole sky.\" Then you get up, because the two hundred are still asleep, still counting on the living.",
+      "mood": "mystery",
+      "choices": [
+        { "text": "Begin your watch under the whole sky", "goto": "d4" }
+      ]
+    },
+    "c3-soft": {
+      "text": "— SECOND WATCH —\n\nYou wake to a tidy log: systems nominal, course true, one line flagged low-priority — \"Earth has gone quiet. Nothing requires action.\"\n\nIt's years before you find the original transmission, misfiled — or filed exactly where someone who knew you would eventually look. You listen once, alone, and understand everything: what arrived, what it would have done to you mid-voyage, and what it cost your counterpart to carry it solo so your shifts could stay light.\n\nYou never log that you found it. Two can keep a mercy.",
+      "mood": "mystery",
+      "choices": [
+        { "text": "Begin your watch, guarding what you know", "goto": "d4" }
+      ]
+    },
+    "c3-day": {
+      "text": "— BOTH WATCHES —\n\nFor the first time in twenty-four years, the Perennial has two officers awake at once.\n\nYou listen to the transmission together, once. Then you spend eighteen irreplaceable hours doing none of the things the manual would suggest: you cook the good rations, you argue about the constellations' new names, you stand at the observation glass while one of you finally asks how the other takes their coffee, because somehow the logs never said.\n\nWhen the pods close again, the ship returns to its long quiet. But the math of the voyage has changed in a way the reactor can't measure: whatever is out there now, neither of you heard it alone.",
+      "mood": "victory",
+      "choices": [
+        { "text": "Sleep. The watch continues.", "goto": "d4" }
+      ]
+    },
+    "d4": {
+      "text": "— SECOND WATCH —\n\nYear thirty-one. The beacon is faint, automated, and unmistakable: the Meridian, your sister ship, eight years ahead of you on a divergent course. Reactor casualty. Thirty-seven souls in functioning pods, drifting.\n\nThe intercept burn would cost six years of voyage time and fuel you may want desperately at the far end. The Meridian's sleepers will keep in their pods either way — probably — for someone else who probably isn't coming.\n\nThe Perennial holds two hundred of your own. The beacon repeats, patient as arithmetic.",
+      "mood": "danger",
+      "choices": [
+        { "text": "Turn the ship. Thirty-seven strangers are only strangers until you reach them", "goto": "c4-rescue", "effects": { "stats": { "power": -1, "years-to-go": 6 }, "award": ["no-one-left"] } },
+        { "text": "Hold course. Two hundred certainties outweigh thirty-seven maybes", "goto": "c4-pass", "effects": { "gainItems": ["passed-by"] } },
+        { "text": "Send everything you know — course, codes, a promise to signal the colony for help — and sail on", "goto": "c4-answer", "effects": { "gainItems": ["answered"] } }
+      ]
+    },
+    "c4-rescue": {
+      "text": "— FIRST WATCH —\n\nYou wake mid-burn, the whole ship leaning into a turn it was never meant to make this late, and the log is almost giddy with apology: \"I know. SIX YEARS. I re-ran it forty times looking for a cheaper answer. There isn't one — there's just a more expensive silence. Help me bring them in.\"\n\nThe docking takes nine days of the most careful flying of both your lives, traded shift by shift. Then the Meridian's pods come across the gap on tethers, one by one, like beads onto a string — thirty-seven sleepers who will wake on a planet they never aimed for, owed to a turn they'll never know was argued over.\n\nThe Perennial is heavier now. Funny how that improves her handling.",
+      "mood": "victory",
+      "onEnter": { "stats": { "sleepers": 37 }, "gainItems": ["meridian-souls"] },
+      "choices": [
+        { "text": "Log the new manifest — two hundred and thirty-seven — and begin your watch", "goto": "final-log" }
+      ]
+    },
+    "c4-pass": {
+      "text": "— FIRST WATCH —\n\nThe log entry is precise, which is how you know it was hard: \"Meridian beacon detected, year thirty-one. Intercept cost: six years, plus landing margin. I held course. I am not going to dress it up — I weighed them against ours and ours won. The bearing is archived if the colony ever builds a rescue vessel. I've already drafted the proposal they'll need.\n\nIf you want to think less of me, the numbers are attached. They didn't make it easier for me either.\"\n\nYou read the numbers. You don't think less. You think: one of us had to be the one awake for that, and it wasn't me, and that asymmetry has a weight you'll carry to the landing.",
+      "mood": "mystery",
+      "choices": [
+        { "text": "Co-sign the rescue proposal for the colony's first shipwrights, and begin your watch", "goto": "final-log" }
+      ]
+    },
+    "c4-answer": {
+      "text": "— FIRST WATCH —\n\nThe log explains the middle path: \"I couldn't spend six of our years. I couldn't spend nothing. So I spent the antenna budget instead — every code, every chart, our colony's coordinates, and a promise: the moment we land, the first thing our radio does is shout their position at anyone listening.\n\nIt's not a rescue. It's a message in a bottle thrown at a drowning ship. I'll be hearing that beacon for the rest of the voyage.\"\n\nYou log back: \"Then we land loud. First transmission belongs to the Meridian. Witnessed and promised.\"",
+      "mood": "mystery",
+      "choices": [
+        { "text": "Set the landing radio's first task in permanent memory, and begin your watch", "goto": "final-log" }
+      ]
+    },
+    "final-log": {
+      "text": "— EITHER WATCH —\n\nThe last week of the voyage. Ship's protocol requires a closing entry in the log — the one the colony's historians will quote, the one schoolchildren may someday be made to memorize.\n\nForty years of trades and turns, and two officers who ran a ship by letter. The cursor blinks, patient as ever. Write the ending.",
+      "mood": "calm",
+      "writeIn": {
+        "prompt": "Write the final log entry of the voyage — in your own words.",
+        "outcomes": [
+          { "text": "Seal it into the colony's official record — history gets the truth", "goto": "d5" },
+          { "text": "Mark it private — some entries belong to the two who wrote them", "goto": "d5" }
+        ]
+      }
+    },
+    "d5": {
+      "text": "— FIRST WATCH —\n\nArrival year. The planet fills the viewport the way the brochures never dared promise: green at the equator, white at the poles, weather moving across an ocean that has never had a name.\n\nBehind you, the long ledger of the voyage — every trade, every turn, every entry in a log that became, somewhere across the years, the longest conversation of your life. Below you, a world.\n\nOne decision left, and for once it isn't a dilemma. It's a beginning. How does the colony wake?",
+      "mood": "victory",
+      "choices": [
+        { "text": "All at once — two hundred souls into the light and noise, a founding day no one forgets", "goto": "end-loud" },
+        { "text": "Slowly, across a year — gentlest sleepers first, a colony assembled like a careful garden", "goto": "end-garden" },
+        { "text": "The other watch first. One season, two people, a world made ready before the world begins", "goto": "end-first" },
+        { "text": "Both crews woken side by side — let Perennial and Meridian found this world together", "goto": "end-two-crews", "require": { "items": ["meridian-souls"] }, "hideIfLocked": true },
+        { "text": "Hand the wake-order to Dr. Voss — the only soul who watched the whole voyage earn this dawn", "goto": "end-elder", "require": { "items": ["voss-awake"] }, "hideIfLocked": true },
+        { "text": "Wake them into the truth: almost nothing left but the landing — and each other", "goto": "end-winter", "require": { "stats": { "power": { "max": 1 } } }, "hideIfLocked": true }
+      ]
+    },
+    "end-loud": {
+      "text": "— BOTH —\n\nYou wake them all.\n\nFor eleven hours the Perennial is chaos: two hundred people discovering their legs, their neighbors, their appetites, and a window with a planet in it. Somebody cries. Somebody laughs so hard the medbay gets involved. Somebody finds the galley and commits historic crimes against the ration system.\n\nAnd in the middle of it, the two of you finally stand in the same room on purpose, watching the crowd you carried here. \"So,\" says the other watch, over the noise. \"That's what we were for.\"\n\nThe landing is loud, crowded, imperfect, and entirely alive. So is everything that comes after.",
+      "mood": "victory",
+      "ending": { "id": "loud", "name": "The Loud Dawn" }
+    },
+    "end-garden": {
+      "text": "— BOTH —\n\nYou wake them slowly, the way you'd plant something you only get one chance to grow.\n\nEngineers first, into the quiet. Then farmers, as the soil surveys come back. Then teachers, then children, each wave met by the one before it, fed and oriented and given a job and a window. The colony assembles over a year like a long exhale — no founding-day chaos, no panic, a settlement that never once outran its own roots.\n\nHistorians will call the method cautious. The two of you know better: it was the only pace that let you greet every single sleeper by name as they woke — including fourteen names, or thirty-seven, or one, depending on what the voyage wrote in your ledger.\n\nSlow is also a kind of love.",
+      "mood": "calm",
+      "ending": { "id": "garden", "name": "The Long Garden" }
+    },
+    "end-first": {
+      "text": "— BOTH —\n\nYou wake exactly one person.\n\nFor one season, the planet belongs to two officers who spent forty years in the same small ship and almost never the same hour. You learn the weather together. You stake out the settlement plain, argue about street names for streets that don't exist, plant the first stubborn barley, and sit up late under unfamiliar constellations finishing every conversation the logs ever started.\n\nWhen the others finally wake, they find a world with paths already worn between the important places — and two people who walk them in step, finishing each other's sentences in a shorthand no one else will ever quite parse. The colony assumes you'd known each other forever.\n\nIn a way no calendar supports: yes.",
+      "mood": "victory",
+      "ending": { "id": "first", "name": "First Footprints" }
+    },
+    "end-two-crews": {
+      "text": "— BOTH —\n\nTwo ships' manifests, one dawn.\n\nThe Perennial's two hundred wake beside the Meridian's thirty-seven, and the first generation of this world is born mixed — two mission patches, two sets of songs, one shared story about a beacon in the dark and a ship that turned. The Meridian's eldest survivor stands at the first assembly and says only: \"We waited eight years in the cold. They came. Build like people might come for you, too.\"\n\nIt becomes the colony's founding law, eventually. The constitution's first line is a course correction.\n\nThe two of you take no credit in public. The logs, however, are unsealed in the colony's first archive, and the children learn to read on them.",
+      "mood": "victory",
+      "ending": { "id": "two-crews", "name": "Two Crews, One Dawn" }
+    },
+    "end-elder": {
+      "text": "— BOTH —\n\nDr. Imani Voss has been awake for the entire second half of the voyage. She has grown the food, named the ship's moods, buried her sleeplessness in seedling trays, and aged the decades the rest of the manifest skipped.\n\nSo when the time comes, you hand her the wake-order. She presses it with the same care she'd give a graft taking to rootstock — and the colony's two hundred open their eyes on a world that already has an elder: silver-haired, sun-ready, standing in the hatch light saying, \"Welcome. Breakfast is barley and it's better than it sounds. I'll show you everything.\"\n\nA settlement that wakes to a grandmother starts a hundred years ahead. Hers are the first hands in this world's soil, and the orchards — when they finally come — are named for her.",
+      "mood": "victory",
+      "ending": { "id": "elder", "name": "The Watchkeeper's World" }
+    },
+    "end-winter": {
+      "text": "— BOTH —\n\nThe ledger is honest: you spent it. The reserves, the margins, the comfortable lies a ship tells itself — all traded, somewhere along the forty years, for people and truths and one eighteen-hour day with the good rations.\n\nSo you wake the colony into honesty. The landing is flown on fumes by two officers who have rehearsed it for a decade, and it is, the flight recorder will confirm, perfect. The first winter is hard. The rationing is real. The colony knows exactly what it has, which turns out to be the one resource that compounds: people who were trusted with the truth from the first breath.\n\nYears later, when the hard winter is a story told to children, the moral has quietly inverted. They don't tell it as the winter we almost didn't survive. They tell it as the winter we found out we could.",
+      "mood": "calm",
+      "ending": { "id": "winter", "name": "Everything, Given" }
+    }
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "meta": {
+    "id": "my-tale-id",
+    "title": "My Tale Title",
+    "blurb": "A one- or two-sentence teaser shown on the title screen, before roles are picked.",
+    "roles": ["Role A", "Role B"],
+    "start": "b1"
+  },
+  "beats": {
+    "b1": {
+      "icon": "lantern",
+      "scene": "Scene text goes here — set the moment, end on the situation the prompt is about. Use \\n\\n for paragraph breaks. \"icon\" is optional — it must match a <symbol id=\"icon-...\"> defined in campfire.html's sprite sheet near the top of <body> (currently: ticket-moon, lit-window, ledger, coat, lantern, token, receipt, constellation, platform-moon). Omit it, reuse one across several beats, or add a new <symbol> to the sprite sheet for a new picture.",
+      "role": 0,
+      "prompt": "The question Role A answers in their own words (1-3 sentences).",
+      "fates": [
+        { "text": "How the world answers, option 1. Written as if it already happened.", "goto": "b2" },
+        { "text": "Option 2 — this one leaves a trace the story can use later.", "goto": "b2", "mark": "SOME-FLAG" },
+        { "text": "Option 3 — another flavor of consequence, same destination or a different one.", "goto": "b2", "mark": "ANOTHER-FLAG" }
+      ]
+    },
+    "b2": {
+      "scene": "role alternates automatically because you set \"role\": 1 here — Role B writes this time. Reference marks from b1 loosely in the prose if you like; the engine itself doesn't branch scene text on marks, only fate availability.",
+      "role": 1,
+      "prompt": "The question Role B answers.",
+      "fates": [
+        { "text": "A fate anyone can get, regardless of prior marks.", "goto": "b3" },
+        {
+          "text": "A fate that only appears as an option if the marks below are already held — otherwise the picker (Fate) never sees this button at all.",
+          "goto": "b3-special",
+          "mark": "GATED-OUTCOME",
+          "requireAny": ["SOME-FLAG", "ANOTHER-FLAG"]
+        }
+      ]
+    },
+    "b3": {
+      "scene": "A default-path beat, reached when the gated fate above wasn't available or wasn't picked.",
+      "role": 0,
+      "prompt": "One more prompt, if you want a longer ride before the ending.",
+      "fates": [
+        { "text": "Leads to the plain ending.", "goto": "ending-plain" },
+        { "text": "Leads to the special ending, if you're holding the mark for it.", "goto": "ending-special", "requireAny": ["GATED-OUTCOME"] }
+      ]
+    },
+    "b3-special": {
+      "scene": "A branch-specific beat only reachable via the gated fate in b2. Converge it back into the same ending pool, or give it its own.",
+      "role": 0,
+      "prompt": "A prompt shaped by how this branch got here.",
+      "fates": [
+        { "text": "Converges back to the plain ending.", "goto": "ending-plain" },
+        { "text": "Or straight to the special one.", "goto": "ending-special" }
+      ]
+    },
+    "ending-plain": {
+      "scene": "Closing prose. Ending beats have no role/prompt/fates — just \"ending\": true and the final text.",
+      "ending": true
+    },
+    "ending-special": {
+      "scene": "A second ending, only reachable through the gated path. Give each distinct ending its own flavor of closure.",
+      "ending": true
+    }
+  }
+}
