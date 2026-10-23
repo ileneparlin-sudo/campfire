@@ -120,6 +120,8 @@
     background: var(--panel2); border: 1px solid #463d63; border-radius: 10px; margin-bottom: 8px; line-height: 1.5;
   }
   .fate-opt:hover:not(:disabled) { border-color: var(--accent); }
+  .fate-wildcard { border-style: dashed; border-color: var(--accent2); color: var(--accent); font-style: italic; text-align: center; }
+  .fate-wildcard:hover:not(:disabled) { border-color: var(--accent); background: #38305280; }
 
   /* ---------- marks (done screen) ---------- */
   #marksRow { color: var(--dim); font-size: 0.85rem; margin-top: 10px; }
@@ -253,6 +255,7 @@
     <div class="toolbar">
       <button id="btnTitle">Title Screen</button>
       <button id="btnSend" style="display:none">💌 Send to partner</button>
+      <button id="btnAiSettings">🎲 AI key</button>
     </div>
   </header>
 
@@ -359,6 +362,19 @@
     <div class="btn-row">
       <button class="primary" id="tsStart">Begin the story</button>
       <button id="tsCancel">Cancel</button>
+    </div>
+  </div>
+
+  <div class="modal" id="aiSettingsModal">
+    <h2>🎲 Let the Line really answer</h2>
+    <p class="muted">Paste a free Gemini API key (from <strong>aistudio.google.com</strong> → "Get API key", no card needed) to unlock an extra option when you're playing Fate: instead of only the written-in-advance consequences, you can ask the story to react for real to what your partner actually wrote. Stored only in this browser — never sent anywhere but Google's API.</p>
+    <label>Gemini API key</label>
+    <input type="password" id="aiKeyInput" placeholder="AIza…" autocomplete="off">
+    <p class="muted" id="aiKeyStatus"></p>
+    <div class="btn-row">
+      <button class="primary" id="aiKeySave">Save</button>
+      <button id="aiKeyClear">Remove key</button>
+      <button id="aiKeyCancel">Close</button>
     </div>
   </div>
 
@@ -629,6 +645,10 @@
   const SAVE = 'campfire-save';
   const TSAVE = 'campfire-tale-save';
   const LIB = 'campfire-library';
+  const GEMINI_KEY_LS = 'campfire-gemini-key';
+  const GEMINI_MODEL = 'gemini-3.5-flash-lite';
+
+  const getGeminiKey = () => localStorage.getItem(GEMINI_KEY_LS) || '';
 
   const lsGet = (k, f) => { try { return JSON.parse(localStorage.getItem(k)) ?? f; } catch { return f; } };
   function toast(msg, ms) {
@@ -740,11 +760,58 @@
       !f.requireAny || f.requireAny.some(m => tstate.marks.includes(m)));
   }
 
+  // The AI wildcard is only offered when every fixed fate on this beat leads to the
+  // same next beat — true plot forks (which goto depends on the choice) stay purely authored.
+  function wildcardGoto() {
+    const gotos = new Set(curBeat().fates.map(f => f.goto));
+    return gotos.size === 1 ? [...gotos][0] : null;
+  }
+
+  async function generateFateText(beat, writtenText) {
+    const key = getGeminiKey();
+    if (!key) throw new Error('No Gemini API key saved yet — add one via "🎲 AI key" up top.');
+    const sys = 'You narrate consequences in a two-player collaborative storytelling game called Campfire, '
+      + 'currently playing the tale "' + tale.meta.title + '". Match the existing prose\'s literary, warm, '
+      + 'slightly melancholic tone exactly. Given the scene and what one player just wrote, respond with ONE '
+      + 'short consequence (1-3 sentences, under 50 words) narrating how the world answers them. Pure narrative '
+      + 'prose only — no preamble, no labels, no quotation marks wrapping the whole thing.';
+    const user = 'SCENE:\n' + beat.scene + '\n\nPROMPT: ' + beat.prompt
+      + '\n\nWHAT THEY WROTE: "' + writtenText + '"\n\nMarks so far: ' + (tstate.marks.join(', ') || 'none')
+      + '\n\nWrite the consequence now.';
+    const res = await fetch(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + GEMINI_MODEL + ':generateContent?key=' + encodeURIComponent(key),
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: sys }] },
+          contents: [{ role: 'user', parts: [{ text: user }] }],
+          generationConfig: { maxOutputTokens: 120, temperature: 0.9 }
+        })
+      }
+    );
+    if (!res.ok) {
+      const errBody = await res.text().catch(() => '');
+      let msg = 'Gemini error ' + res.status;
+      try { msg = JSON.parse(errBody).error.message || msg; } catch {}
+      throw new Error(msg);
+    }
+    const data = await res.json();
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+    if (!text) throw new Error('Gemini returned an empty response.');
+    return text;
+  }
+
   function taleFate(fate, fromRemote) {
     if (tstate.phase !== 'fate') return;
     if (net && !fromRemote) {
       if (fateIdx() !== net.myIndex) return;
-      if (net.role === 'guest') { net.conn.send({ t: 'tf', idx: curBeat().fates.indexOf(fate), b: tstate.beat }); return; }
+      if (net.role === 'guest') {
+        const idx = curBeat().fates.indexOf(fate);
+        if (idx === -1) net.conn.send({ t: 'tf', custom: { text: fate.text, goto: fate.goto, mark: fate.mark }, b: tstate.beat });
+        else net.conn.send({ t: 'tf', idx, b: tstate.beat });
+        return;
+      }
     }
     const b = curBeat();
     tstate.record.push({
@@ -944,6 +1011,27 @@
         btn.addEventListener('click', () => taleFate(f));
         opts.appendChild(btn);
       });
+      const goto = wildcardGoto();
+      if (goto && getGeminiKey()) {
+        const wbtn = document.createElement('button');
+        wbtn.className = 'fate-opt fate-wildcard';
+        wbtn.textContent = '🎲 Let the Line actually answer';
+        wbtn.disabled = !myTurn;
+        wbtn.addEventListener('click', async () => {
+          const allBtns = [...opts.querySelectorAll('button')];
+          allBtns.forEach(b => b.disabled = true);
+          wbtn.textContent = '⏳ The Line is listening…';
+          try {
+            const text = await generateFateText(b, tstate.pending);
+            taleFate({ text, goto, mark: 'THE-LINE-RESPONDED' });
+          } catch (e) {
+            toast(e.message || 'The Line didn’t answer — try a written option instead.', 5000);
+            allBtns.forEach(btn2 => btn2.disabled = !myTurn);
+            wbtn.textContent = '🎲 Let the Line actually answer';
+          }
+        });
+        opts.appendChild(wbtn);
+      }
     }
     window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
   }
@@ -1196,10 +1284,15 @@
         toast(tstate.players[1] + ' wrote their part.', 3000);
       }
       if (msg.t === 'tf' && tstate && tstate.phase === 'fate' && fateIdx() === 1 && msg.b === tstate.beat) {
-        const f = curBeat().fates[msg.idx];
-        if (f && availableFates().includes(f)) {
-          taleFate(f, true);
-          toast(tstate.players[1] + ' chose the consequence.', 3000);
+        if (msg.custom && typeof msg.custom.text === 'string' && msg.custom.goto && tale.beats[msg.custom.goto]) {
+          taleFate({ text: msg.custom.text, goto: msg.custom.goto, mark: msg.custom.mark }, true);
+          toast(tstate.players[1] + ' let the Line answer.', 3000);
+        } else {
+          const f = curBeat().fates[msg.idx];
+          if (f && availableFates().includes(f)) {
+            taleFate(f, true);
+            toast(tstate.players[1] + ' chose the consequence.', 3000);
+          }
         }
       }
     });
@@ -1299,6 +1392,33 @@
   }
   $('btnTale').addEventListener('click', () => { pendingTaleHostStart = null; openTaleSetup(null); });
   $('tsCancel').addEventListener('click', closeModal);
+
+  function refreshAiKeyStatus() {
+    $('aiKeyStatus').textContent = getGeminiKey()
+      ? 'A key is saved in this browser. The 🎲 option will appear during Fate turns.'
+      : 'No key saved yet — the extra option stays hidden until you add one.';
+  }
+  $('btnAiSettings').addEventListener('click', () => {
+    $('aiKeyInput').value = '';
+    refreshAiKeyStatus();
+    openModal('aiSettingsModal');
+  });
+  $('aiKeyCancel').addEventListener('click', closeModal);
+  $('aiKeySave').addEventListener('click', () => {
+    const v = $('aiKeyInput').value.trim();
+    if (!v) { toast('Paste a key first, or use "Remove key" to clear it.', 4000); return; }
+    localStorage.setItem(GEMINI_KEY_LS, v);
+    $('aiKeyInput').value = '';
+    refreshAiKeyStatus();
+    toast('Gemini key saved.');
+    if (mode === 'tale' && tstate && tstate.phase === 'fate') renderTale();
+  });
+  $('aiKeyClear').addEventListener('click', () => {
+    localStorage.removeItem(GEMINI_KEY_LS);
+    refreshAiKeyStatus();
+    toast('Key removed.');
+    if (mode === 'tale' && tstate && tstate.phase === 'fate') renderTale();
+  });
   $('tsStart').addEventListener('click', () => {
     const a = $('tsNameA').value.trim() || 'Player 1';
     const b = $('tsNameB').value.trim() || 'Player 2';
